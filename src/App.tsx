@@ -1,23 +1,20 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./components/AuthProvider";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Products from "./pages/Products";
+import { Toaster } from "@/components/ui/toaster";
+import AuthProvider from "@/components/AuthProvider";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import Products from "@/pages/Products";
+import Franchises from "@/pages/Franchises";
+import Auth from "@/pages/Auth";
+import Index from "@/pages/Index";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Router>
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route
@@ -36,11 +33,20 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/franchises"
+              element={
+                <ProtectedRoute>
+                  <Franchises />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+        </Router>
+        <Toaster />
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
