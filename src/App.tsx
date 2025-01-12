@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import AuthProvider from "@/components/AuthProvider";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { AuthProvider } from "@/components/AuthProvider";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Products from "@/pages/Products";
 import Franchises from "@/pages/Franchises";
 import Auth from "@/pages/Auth";

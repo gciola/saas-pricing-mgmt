@@ -44,7 +44,7 @@ const Franchises = () => {
   });
 
   const mutation = useMutation({
-    mutationFn: async (franchise: Partial<Franchise>) => {
+    mutationFn: async (franchise: { frlabel: string; franchisetype?: string | null; limits?: number | null }) => {
       if (editingFranchise) {
         const { error } = await supabase
           .from("franchise")
