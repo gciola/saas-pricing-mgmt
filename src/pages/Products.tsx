@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { HomeButton } from "@/components/HomeButton";
 import {
   Table,
   TableBody,
@@ -98,7 +99,10 @@ const Products = () => {
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Products</h1>
+        <div className="flex items-center gap-2">
+          <HomeButton />
+          <h1 className="text-2xl font-bold">Products</h1>
+        </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => setEditingProduct(null)}>

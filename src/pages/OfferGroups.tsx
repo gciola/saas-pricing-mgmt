@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { HomeButton } from "@/components/HomeButton";
 import {
   Table,
   TableBody,
@@ -34,7 +35,7 @@ export default function OfferGroups() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: groups, isLoading } = useQuery({
+  const { data: offerGroups, isLoading } = useQuery({
     queryKey: ["offerGroups"],
     queryFn: async () => {
       const { data, error } = await supabase.from("offergroup").select("*");
@@ -61,7 +62,7 @@ export default function OfferGroups() {
       setIsOpen(false);
       setEditingGroup(null);
       toast({
-        title: `Offer group ${editingGroup ? "updated" : "created"} successfully`,
+        title: `Offer Group ${editingGroup ? "updated" : "created"} successfully`,
       });
     },
     onError: (error) => {
@@ -84,7 +85,7 @@ export default function OfferGroups() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["offerGroups"] });
       toast({
-        title: "Offer group deleted successfully",
+        title: "Offer Group deleted successfully",
       });
     },
     onError: (error) => {
@@ -101,12 +102,15 @@ export default function OfferGroups() {
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Offer Groups</h1>
+        <div className="flex items-center gap-2">
+          <HomeButton />
+          <h1 className="text-3xl font-bold">Offer Groups</h1>
+        </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2" />
-              Add Group
+              Add Offer Group
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -147,15 +151,12 @@ export default function OfferGroups() {
               </div>
               <div>
                 <Label htmlFor="grouptype">Group Type</Label>
-                <select
+                <Input
                   id="grouptype"
                   name="grouptype"
-                  defaultValue={editingGroup?.grouptype || "Setup"}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="Setup">Setup</option>
-                  <option value="Recurring">Recurring</option>
-                </select>
+                  defaultValue={editingGroup?.grouptype}
+                  required
+                />
               </div>
               <Button type="submit" className="w-full">
                 {editingGroup ? "Update" : "Create"}
@@ -170,12 +171,12 @@ export default function OfferGroups() {
           <TableRow>
             <TableHead>ID</TableHead>
             <TableHead>Description</TableHead>
-            <TableHead>Type</TableHead>
+            <TableHead>Group Type</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {groups?.map((group: OfferGroup) => (
+          {offerGroups?.map((group) => (
             <TableRow key={group.idgroup}>
               <TableCell>{group.idgroup}</TableCell>
               <TableCell>{group.descgroup}</TableCell>

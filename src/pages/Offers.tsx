@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { HomeButton } from "@/components/HomeButton";
 import {
   Table,
   TableBody,
@@ -137,7 +138,10 @@ export default function Offers() {
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Offers</h1>
+        <div className="flex items-center gap-2">
+          <HomeButton />
+          <h1 className="text-3xl font-bold">Offers</h1>
+        </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button>
