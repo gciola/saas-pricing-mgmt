@@ -4,24 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { HomeButton } from "@/components/HomeButton";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
+import { OfferGroupForm } from "@/components/offer-groups/OfferGroupForm";
+import { OfferGroupsTable } from "@/components/offer-groups/OfferGroupsTable";
 
 interface OfferGroup {
   idgroup: string;
@@ -119,7 +111,8 @@ export default function OfferGroups() {
                 {editingGroup ? "Edit Offer Group" : "Create Offer Group"}
               </DialogTitle>
             </DialogHeader>
-            <form
+            <OfferGroupForm
+              editingGroup={editingGroup}
               onSubmit={(e) => {
                 e.preventDefault();
                 const formData = new FormData(e.currentTarget);
@@ -129,91 +122,19 @@ export default function OfferGroups() {
                   grouptype: formData.get("grouptype") as string,
                 });
               }}
-              className="space-y-4"
-            >
-              <div>
-                <Label htmlFor="idgroup">Group ID</Label>
-                <Input
-                  id="idgroup"
-                  name="idgroup"
-                  defaultValue={editingGroup?.idgroup}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="descgroup">Description</Label>
-                <Input
-                  id="descgroup"
-                  name="descgroup"
-                  defaultValue={editingGroup?.descgroup}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="grouptype">Group Type</Label>
-                <Input
-                  id="grouptype"
-                  name="grouptype"
-                  defaultValue={editingGroup?.grouptype}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                {editingGroup ? "Update" : "Create"}
-              </Button>
-            </form>
+            />
           </DialogContent>
         </Dialog>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Group Type</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {offerGroups?.map((group) => (
-            <TableRow key={group.idgroup}>
-              <TableCell>{group.idgroup}</TableCell>
-              <TableCell>{group.descgroup}</TableCell>
-              <TableCell>{group.grouptype}</TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => {
-                      setEditingGroup(group);
-                      setIsOpen(true);
-                    }}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          "Are you sure you want to delete this offer group?"
-                        )
-                      ) {
-                        deleteMutation.mutate(group.idgroup);
-                      }
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <OfferGroupsTable
+        offerGroups={offerGroups}
+        onEdit={(group) => {
+          setEditingGroup(group);
+          setIsOpen(true);
+        }}
+        onDelete={(idgroup) => deleteMutation.mutate(idgroup)}
+      />
     </div>
   );
 }
