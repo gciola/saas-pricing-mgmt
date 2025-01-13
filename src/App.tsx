@@ -5,8 +5,9 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Products from "@/pages/Products";
 import Franchises from "@/pages/Franchises";
+import Offers from "@/pages/Offers";
+import OfferGroups from "@/pages/OfferGroups";
 import Auth from "@/pages/Auth";
-import Index from "@/pages/Index";
 
 const queryClient = new QueryClient();
 
@@ -21,14 +22,6 @@ function App() {
               path="/"
               element={
                 <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/products"
-              element={
-                <ProtectedRoute>
                   <Products />
                 </ProtectedRoute>
               }
@@ -38,6 +31,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Franchises />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/offers"
+              element={
+                <ProtectedRoute>
+                  <Offers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/offer-groups"
+              element={
+                <ProtectedRoute>
+                  <OfferGroups />
                 </ProtectedRoute>
               }
             />
