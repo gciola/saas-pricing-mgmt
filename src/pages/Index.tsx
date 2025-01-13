@@ -1,17 +1,67 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { LayoutDashboard, Users, Gift, Package } from "lucide-react";
+
+const menuItems = [
+  {
+    title: "Products",
+    description: "Manage your product catalog",
+    icon: Package,
+    path: "/",
+  },
+  {
+    title: "Franchises",
+    description: "Manage franchise operations",
+    icon: Users,
+    path: "/franchises",
+  },
+  {
+    title: "Offers",
+    description: "Create and manage offers",
+    icon: Gift,
+    path: "/offers",
+  },
+  {
+    title: "Offer Groups",
+    description: "Organize offers into groups",
+    icon: LayoutDashboard,
+    path: "/offer-groups",
+  },
+];
 
 export default function Index() {
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-4xl font-bold mb-8">Welcome to the Admin Panel</h1>
-      <div className="grid gap-4">
-        <Link to="/products">
-          <Button className="w-full">Manage Products</Button>
-        </Link>
-        <Link to="/franchises">
-          <Button className="w-full">Manage Franchises</Button>
-        </Link>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-foreground">Admin Dashboard</h1>
+          <ThemeToggle />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {menuItems.map((item) => (
+            <Link key={item.path} to={item.path}>
+              <Card className="h-full hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <item.icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <CardTitle className="text-xl">{item.title}</CardTitle>
+                  </div>
+                  <CardDescription>{item.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full" variant="outline">
+                    Access {item.title}
+                  </Button>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );
