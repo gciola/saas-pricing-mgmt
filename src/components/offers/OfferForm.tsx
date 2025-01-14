@@ -3,6 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Offer {
   idoffer: string;
@@ -22,6 +24,18 @@ interface OfferFormProps {
 }
 
 export function OfferForm({ editingOffer, offerGroups, onSubmit }: OfferFormProps) {
+  const { data: products } = useQuery({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("idproduct, description")
+        .order('description');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
@@ -99,13 +113,20 @@ export function OfferForm({ editingOffer, offerGroups, onSubmit }: OfferFormProp
         </Select>
       </div>
       <div>
-        <Label htmlFor="idproduct">Product ID</Label>
-        <Input
-          id="idproduct"
-          name="idproduct"
-          type="number"
-          defaultValue={editingOffer?.idproduct || ""}
-        />
+        <Label htmlFor="idproduct">Product</Label>
+        <Select name="idproduct" defaultValue={editingOffer?.idproduct?.toString()}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a product" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">None</SelectItem>
+            {products?.map((product) => (
+              <SelectItem key={product.idproduct} value={product.idproduct.toString()}>
+                {product.description || `Product ${product.idproduct}`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <Button type="submit" className="w-full">
         {editingOffer ? "Update" : "Create"}
