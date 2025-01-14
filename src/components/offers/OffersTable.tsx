@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -7,7 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Offer {
   idoffer: string;
@@ -27,61 +31,119 @@ interface OffersTableProps {
 }
 
 export function OffersTable({ offers, onEdit, onDelete }: OffersTableProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const { data: products } = useQuery({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("idproduct, description");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: franchises } = useQuery({
+    queryKey: ["franchises"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("franchise")
+        .select("idfranchise, frlabel");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const getProductDescription = (idproduct: number | null) => {
+    if (!idproduct) return "None";
+    const product = products?.find((p) => p.idproduct === idproduct);
+    return product?.description || `Product ${idproduct}`;
+  };
+
+  const getFranchiseLabel = (idfranchise: number | null) => {
+    if (!idfranchise) return "None";
+    const franchise = franchises?.find((f) => f.idfranchise === idfranchise);
+    return franchise?.frlabel || `Franchise ${idfranchise}`;
+  };
+
+  const filteredOffers = offers.filter((offer) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      offer.descoffer.toLowerCase().includes(searchLower) ||
+      offer.parceltype.toLowerCase().includes(searchLower) ||
+      getProductDescription(offer.idproduct).toLowerCase().includes(searchLower) ||
+      getFranchiseLabel(offer.idfranchise).toLowerCase().includes(searchLower)
+    );
+  });
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>ID</TableHead>
-          <TableHead>Description</TableHead>
-          <TableHead>Franchise ID</TableHead>
-          <TableHead>Parcel Type</TableHead>
-          <TableHead>Payer</TableHead>
-          <TableHead>Quantity 1</TableHead>
-          <TableHead>Group ID</TableHead>
-          <TableHead>Product ID</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {offers?.map((offer) => (
-          <TableRow key={offer.idoffer}>
-            <TableCell>{offer.idoffer}</TableCell>
-            <TableCell>{offer.descoffer}</TableCell>
-            <TableCell>{offer.idfranchise}</TableCell>
-            <TableCell>{offer.parceltype}</TableCell>
-            <TableCell>{offer.payer}</TableCell>
-            <TableCell>{offer.quantity1 ? "Yes" : "No"}</TableCell>
-            <TableCell>{offer.idgroup}</TableCell>
-            <TableCell>{offer.idproduct}</TableCell>
-            <TableCell>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => onEdit(offer)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        "Are you sure you want to delete this offer?"
-                      )
-                    ) {
-                      onDelete(offer.idoffer);
-                    }
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </TableCell>
+    <div className="space-y-4">
+      <div className="relative">
+        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search offers by description, parcel type, product or franchise..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-8"
+        />
+      </div>
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>ID</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead>Franchise</TableHead>
+            <TableHead>Parcel Type</TableHead>
+            <TableHead>Payer</TableHead>
+            <TableHead>Quantity 1</TableHead>
+            <TableHead>Group ID</TableHead>
+            <TableHead>Product</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {filteredOffers.map((offer) => (
+            <TableRow key={offer.idoffer}>
+              <TableCell>{offer.idoffer}</TableCell>
+              <TableCell>{offer.descoffer}</TableCell>
+              <TableCell>{getFranchiseLabel(offer.idfranchise)}</TableCell>
+              <TableCell>{offer.parceltype}</TableCell>
+              <TableCell>{offer.payer}</TableCell>
+              <TableCell>{offer.quantity1 ? "Yes" : "No"}</TableCell>
+              <TableCell>{offer.idgroup}</TableCell>
+              <TableCell>{getProductDescription(offer.idproduct)}</TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => onEdit(offer)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          "Are you sure you want to delete this offer?"
+                        )
+                      ) {
+                        onDelete(offer.idoffer);
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
