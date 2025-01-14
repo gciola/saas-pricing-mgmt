@@ -36,6 +36,18 @@ export function OfferForm({ editingOffer, offerGroups, onSubmit }: OfferFormProp
     },
   });
 
+  const { data: franchises } = useQuery({
+    queryKey: ["franchises"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("franchise")
+        .select("idfranchise, frlabel")
+        .order('frlabel');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
@@ -57,13 +69,20 @@ export function OfferForm({ editingOffer, offerGroups, onSubmit }: OfferFormProp
         />
       </div>
       <div>
-        <Label htmlFor="idfranchise">Franchise ID</Label>
-        <Input
-          id="idfranchise"
-          name="idfranchise"
-          type="number"
-          defaultValue={editingOffer?.idfranchise || ""}
-        />
+        <Label htmlFor="idfranchise">Franchise</Label>
+        <Select name="idfranchise" defaultValue={editingOffer?.idfranchise?.toString() || "null"}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a franchise" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="null">None</SelectItem>
+            {franchises?.map((franchise) => (
+              <SelectItem key={franchise.idfranchise} value={franchise.idfranchise.toString()}>
+                {franchise.frlabel}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="parceltype">Parcel Type</Label>
