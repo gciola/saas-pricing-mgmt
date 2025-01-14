@@ -114,12 +114,12 @@ export function OfferForm({ editingOffer, offerGroups, onSubmit }: OfferFormProp
       </div>
       <div>
         <Label htmlFor="idproduct">Product</Label>
-        <Select name="idproduct" defaultValue={editingOffer?.idproduct?.toString()}>
+        <Select name="idproduct" defaultValue={editingOffer?.idproduct?.toString() || "null"}>
           <SelectTrigger>
             <SelectValue placeholder="Select a product" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">None</SelectItem>
+            <SelectItem value="null">None</SelectItem>
             {products?.map((product) => (
               <SelectItem key={product.idproduct} value={product.idproduct.toString()}>
                 {product.description || `Product ${product.idproduct}`}
