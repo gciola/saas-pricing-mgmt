@@ -68,13 +68,23 @@ export function OffersTable({ offers, onEdit, onDelete }: OffersTableProps) {
   };
 
   const filteredOffers = offers.filter((offer) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      offer.descoffer.toLowerCase().includes(searchLower) ||
-      offer.parceltype.toLowerCase().includes(searchLower) ||
-      getProductDescription(offer.idproduct).toLowerCase().includes(searchLower) ||
-      getFranchiseLabel(offer.idfranchise).toLowerCase().includes(searchLower)
-    );
+    if (!searchTerm) return true;
+
+    // Split search terms and remove empty strings
+    const searchTerms = searchTerm.toLowerCase().split(" ").filter(Boolean);
+
+    // Create a string that combines all searchable fields
+    const searchableText = [
+      offer.descoffer,
+      offer.parceltype,
+      getProductDescription(offer.idproduct),
+      getFranchiseLabel(offer.idfranchise),
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    // Return true only if ALL search terms are found in the searchable text
+    return searchTerms.every((term) => searchableText.includes(term));
   });
 
   return (
@@ -82,7 +92,7 @@ export function OffersTable({ offers, onEdit, onDelete }: OffersTableProps) {
       <div className="relative">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search offers by description, parcel type, product or franchise..."
+          placeholder="Search offers by description, parcel type, product or franchise... (use spaces to search multiple terms)"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-8"
