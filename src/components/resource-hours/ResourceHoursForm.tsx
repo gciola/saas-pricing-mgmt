@@ -175,14 +175,20 @@ export function ResourceHoursForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {resources.map((resource) => (
-                    <SelectItem
-                      key={resource.idresource}
-                      value={resource.idresource}
-                    >
-                      {resource.description}
+                  {Array.isArray(resources) && resources.length > 0 ? (
+                    resources.map((resource) => (
+                      <SelectItem
+                        key={resource.idresource}
+                        value={resource.idresource}
+                      >
+                        {resource.description}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="" disabled>
+                      No resources available
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
