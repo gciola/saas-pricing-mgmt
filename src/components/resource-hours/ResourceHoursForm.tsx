@@ -127,7 +127,7 @@ export function ResourceHoursForm({
                     <CommandInput placeholder="Search offer..." />
                     <CommandEmpty>No offer found.</CommandEmpty>
                     <CommandGroup>
-                      {offers.map((offer) => (
+                      {offers?.map((offer) => (
                         <CommandItem
                           value={offer.descoffer}
                           key={offer.idoffer}
@@ -169,7 +169,7 @@ export function ResourceHoursForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {resources.map((resource) => (
+                  {resources?.map((resource) => (
                     <SelectItem
                       key={resource.idresource}
                       value={resource.idresource}
