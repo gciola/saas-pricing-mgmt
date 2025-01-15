@@ -12,11 +12,39 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit2, Save, X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Edit2, Save, Trash2, X } from "lucide-react";
+import { ResourceForm } from "./ResourceForm";
+
+interface Resource {
+  idresource: string;
+  description: string;
+  resourcetype: string;
+  hourcost: number | null;
+}
 
 export function ResourcesTable() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedCost, setEditedCost] = useState<string>("");
+  const [editingResource, setEditingResource] = useState<Resource | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [resourceToDelete, setResourceToDelete] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -28,7 +56,7 @@ export function ResourcesTable() {
         .select("*")
         .order("idresource");
       if (error) throw error;
-      return data;
+      return data as Resource[];
     },
   });
 
@@ -58,6 +86,33 @@ export function ResourcesTable() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("resources")
+        .delete()
+        .eq("idresource", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["resources"] });
+      toast({
+        title: "Success",
+        description: "Resource deleted successfully",
+      });
+      setDeleteConfirmOpen(false);
+      setResourceToDelete(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete resource",
+        variant: "destructive",
+      });
+      console.error("Error deleting resource:", error);
+    },
+  });
+
   const formatCurrency = (value: number | null) => {
     if (value === null) return "R$ 0,00";
     return new Intl.NumberFormat("pt-BR", {
@@ -66,7 +121,7 @@ export function ResourcesTable() {
     }).format(value);
   };
 
-  const handleStartEdit = (resource: any) => {
+  const handleStartEdit = (resource: Resource) => {
     setEditingId(resource.idresource);
     setEditedCost(resource.hourcost?.toString() || "0");
   };
@@ -84,6 +139,17 @@ export function ResourcesTable() {
     await updateMutation.mutate({ id, cost: numericValue });
   };
 
+  const handleDelete = (resource: Resource) => {
+    setResourceToDelete(resource.idresource);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (resourceToDelete) {
+      deleteMutation.mutate(resourceToDelete);
+    }
+  };
+
   if (isLoading) return <div>Loading...</div>;
 
   return (
@@ -95,7 +161,7 @@ export function ResourcesTable() {
             <TableHead>Description</TableHead>
             <TableHead>Resource Type</TableHead>
             <TableHead>Hour Cost</TableHead>
-            <TableHead className="w-[100px]">Actions</TableHead>
+            <TableHead className="w-[150px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -119,37 +185,83 @@ export function ResourcesTable() {
                 )}
               </TableCell>
               <TableCell>
-                {editingId === resource.idresource ? (
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleSave(resource.idresource)}
-                    >
-                      <Save className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setEditingId(null)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleStartEdit(resource)}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                )}
+                <div className="flex gap-2">
+                  {editingId === resource.idresource ? (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleSave(resource.idresource)}
+                      >
+                        <Save className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setEditingId(null)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleStartEdit(resource)}
+                      >
+                        <Save className="h-4 w-4" />
+                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setEditingResource(resource)}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Edit Resource</DialogTitle>
+                          </DialogHeader>
+                          <ResourceForm
+                            initialData={resource}
+                            onSuccess={() => setEditingResource(null)}
+                          />
+                        </DialogContent>
+                      </Dialog>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(resource)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the resource.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

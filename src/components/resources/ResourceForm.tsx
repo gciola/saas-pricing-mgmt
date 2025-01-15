@@ -13,8 +13,16 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/components/ui/use-toast";
 
+interface Resource {
+  idresource: string;
+  description: string;
+  resourcetype: string;
+  hourcost: number | null;
+}
+
 interface ResourceFormProps {
   onSuccess: () => void;
+  initialData?: Resource;
 }
 
 interface FormData {
@@ -24,47 +32,63 @@ interface FormData {
   hourcost: string;
 }
 
-export function ResourceForm({ onSuccess }: ResourceFormProps) {
+export function ResourceForm({ onSuccess, initialData }: ResourceFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const form = useForm<FormData>({
     defaultValues: {
-      idresource: "",
-      description: "",
-      resourcetype: "",
-      hourcost: "0",
+      idresource: initialData?.idresource || "",
+      description: initialData?.description || "",
+      resourcetype: initialData?.resourcetype || "",
+      hourcost: initialData?.hourcost?.toString() || "0",
     },
   });
 
-  const createMutation = useMutation({
+  const mutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const { error } = await supabase.from("resources").insert([
-        {
-          idresource: data.idresource,
-          description: data.description,
-          resourcetype: data.resourcetype,
-          hourcost: parseFloat(data.hourcost.replace(/[^\d,.-]/g, "").replace(",", ".")),
-        },
-      ]);
-      if (error) throw error;
+      const payload = {
+        idresource: data.idresource,
+        description: data.description,
+        resourcetype: data.resourcetype,
+        hourcost: parseFloat(data.hourcost.replace(/[^\d,.-]/g, "").replace(",", ".")),
+      };
+
+      if (initialData) {
+        const { error } = await supabase
+          .from("resources")
+          .update(payload)
+          .eq("idresource", initialData.idresource);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("resources").insert([payload]);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["resources"] });
+      toast({
+        title: "Success",
+        description: initialData
+          ? "Resource updated successfully"
+          : "Resource created successfully",
+      });
       onSuccess();
     },
     onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to create resource",
+        description: initialData
+          ? "Failed to update resource"
+          : "Failed to create resource",
         variant: "destructive",
       });
-      console.error("Error creating resource:", error);
+      console.error("Error saving resource:", error);
     },
   });
 
   const onSubmit = (data: FormData) => {
-    createMutation.mutate(data);
+    mutation.mutate(data);
   };
 
   return (
@@ -77,7 +101,7 @@ export function ResourceForm({ onSuccess }: ResourceFormProps) {
             <FormItem>
               <FormLabel>Resource ID</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} disabled={!!initialData} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -133,7 +157,7 @@ export function ResourceForm({ onSuccess }: ResourceFormProps) {
         />
 
         <Button type="submit" className="w-full">
-          Create Resource
+          {initialData ? "Update Resource" : "Create Resource"}
         </Button>
       </form>
     </Form>
