@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { LayoutDashboard, Users, Gift, Package, Tool } from "lucide-react";
+import { LayoutDashboard, Users, Gift, Package, Wrench } from "lucide-react";
 
 const menuItems = [
   {
@@ -32,7 +32,7 @@ const menuItems = [
   {
     title: "Resources",
     description: "Manage resources and costs",
-    icon: Tool,
+    icon: Wrench,
     path: "/resources",
   },
 ];
