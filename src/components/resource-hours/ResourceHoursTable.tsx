@@ -1,0 +1,140 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Edit, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
+
+interface ResourceHoursTableProps {
+  onEdit: (hours: {
+    idoffer: string;
+    idresource: string;
+    hours: number;
+    monthly: boolean;
+  }) => void;
+  onDelete: (idoffer: string, idresource: string) => void;
+}
+
+export function ResourceHoursTable({ onEdit, onDelete }: ResourceHoursTableProps) {
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    idoffer: string;
+    idresource: string;
+  } | null>(null);
+
+  const { data: resourceHours, isLoading } = useQuery({
+    queryKey: ["resourceHours"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("resourcehours")
+        .select(`
+          *,
+          offers:idoffer (
+            descoffer
+          ),
+          resources:idresource (
+            description
+          )
+        `)
+        .order('idoffer');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Offer</TableHead>
+            <TableHead>Resource</TableHead>
+            <TableHead>Hours</TableHead>
+            <TableHead>Monthly</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {resourceHours?.map((hours) => (
+            <TableRow key={`${hours.idoffer}-${hours.idresource}`}>
+              <TableCell>{hours.offers?.descoffer}</TableCell>
+              <TableCell>{hours.resources?.description}</TableCell>
+              <TableCell>{hours.hours}</TableCell>
+              <TableCell>{hours.monthly ? "Yes" : "No"}</TableCell>
+              <TableCell className="text-right space-x-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onEdit(hours)}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() =>
+                    setDeleteConfirmation({
+                      idoffer: hours.idoffer,
+                      idresource: hours.idresource,
+                    })
+                  }
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      <AlertDialog
+        open={!!deleteConfirmation}
+        onOpenChange={() => setDeleteConfirmation(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              resource hours record.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteConfirmation) {
+                  onDelete(
+                    deleteConfirmation.idoffer,
+                    deleteConfirmation.idresource
+                  );
+                }
+                setDeleteConfirmation(null);
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}

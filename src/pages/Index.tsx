@@ -11,7 +11,8 @@ import {
   Server, 
   DollarSign, 
   Settings, 
-  PieChart 
+  PieChart,
+  Clock
 } from "lucide-react";
 
 const menuItems = [
@@ -46,8 +47,8 @@ const menuItems = [
   {
     title: "Adicione o esforço",
     description: "Determine o esforço em horas de cada oferta abertos por recurso, definindo se o esforço é mensal ou unitário.",
-    icon: Server,
-    path: "/resources",
+    icon: Clock,
+    path: "/resource-hours",
     action: "Acessar Esforço"
   },
   {
