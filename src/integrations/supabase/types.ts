@@ -9,6 +9,72 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      dealhist: {
+        Row: {
+          comissionvalue: number | null
+          created_at: string
+          deallink: string | null
+          descgroup: string | null
+          descoffer: string | null
+          franchise: string | null
+          hostingcost: number | null
+          iddeal: string
+          idgroup: string | null
+          impcost: number | null
+          offercode: string
+          price: number | null
+          qty: number | null
+          revenue: number | null
+          supportcost: number | null
+          taxes: number | null
+          unitprice: number | null
+          updated_at: string
+          wacost: number | null
+        }
+        Insert: {
+          comissionvalue?: number | null
+          created_at?: string
+          deallink?: string | null
+          descgroup?: string | null
+          descoffer?: string | null
+          franchise?: string | null
+          hostingcost?: number | null
+          iddeal: string
+          idgroup?: string | null
+          impcost?: number | null
+          offercode: string
+          price?: number | null
+          qty?: number | null
+          revenue?: number | null
+          supportcost?: number | null
+          taxes?: number | null
+          unitprice?: number | null
+          updated_at?: string
+          wacost?: number | null
+        }
+        Update: {
+          comissionvalue?: number | null
+          created_at?: string
+          deallink?: string | null
+          descgroup?: string | null
+          descoffer?: string | null
+          franchise?: string | null
+          hostingcost?: number | null
+          iddeal?: string
+          idgroup?: string | null
+          impcost?: number | null
+          offercode?: string
+          price?: number | null
+          qty?: number | null
+          revenue?: number | null
+          supportcost?: number | null
+          taxes?: number | null
+          unitprice?: number | null
+          updated_at?: string
+          wacost?: number | null
+        }
+        Relationships: []
+      }
       franchise: {
         Row: {
           franchisetype: string | null
@@ -263,15 +329,15 @@ export type Database = {
       settings: {
         Row: {
           parameter: string
-          value: number | null
+          value: string | null
         }
         Insert: {
           parameter: string
-          value?: number | null
+          value?: string | null
         }
         Update: {
           parameter?: string
-          value?: number | null
+          value?: string | null
         }
         Relationships: []
       }
@@ -282,6 +348,17 @@ export type Database = {
     Functions: {
       getbaseprice: {
         Args: {
+          apidescproduct: string
+          contractdur: number
+          apifranchise: string
+          hubqty: number
+          partnerqty: number
+        }
+        Returns: Json
+      }
+      getbasepricedeal: {
+        Args: {
+          dealnr: string
           apidescproduct: string
           contractdur: number
           apifranchise: string

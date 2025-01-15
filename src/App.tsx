@@ -8,6 +8,7 @@ import Products from "@/pages/Products";
 import Franchises from "@/pages/Franchises";
 import Offers from "@/pages/Offers";
 import OfferGroups from "@/pages/OfferGroups";
+import Resources from "@/pages/Resources";
 import Auth from "@/pages/Auth";
 import Index from "@/pages/Index";
 
@@ -58,6 +59,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <OfferGroups />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/resources"
+                element={
+                  <ProtectedRoute>
+                    <Resources />
                   </ProtectedRoute>
                 }
               />
