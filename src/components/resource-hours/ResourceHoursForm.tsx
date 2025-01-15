@@ -73,7 +73,7 @@ export function ResourceHoursForm({
         .select("idoffer, descoffer")
         .order("descoffer");
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
@@ -85,12 +85,16 @@ export function ResourceHoursForm({
         .select("idresource, description")
         .order("description");
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
   if (isLoadingOffers || isLoadingResources) {
     return <div>Loading...</div>;
+  }
+
+  if (!offers || !resources) {
+    return <div>No data available</div>;
   }
 
   return (
@@ -115,7 +119,7 @@ export function ResourceHoursForm({
                       )}
                     >
                       {field.value
-                        ? offers?.find((offer) => offer.idoffer === field.value)
+                        ? offers.find((offer) => offer.idoffer === field.value)
                             ?.descoffer
                         : "Select offer..."}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -127,7 +131,7 @@ export function ResourceHoursForm({
                     <CommandInput placeholder="Search offer..." />
                     <CommandEmpty>No offer found.</CommandEmpty>
                     <CommandGroup>
-                      {offers?.map((offer) => (
+                      {offers.map((offer) => (
                         <CommandItem
                           value={offer.descoffer}
                           key={offer.idoffer}
@@ -172,7 +176,7 @@ export function ResourceHoursForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {resources?.map((resource) => (
+                  {resources.map((resource) => (
                     <SelectItem
                       key={resource.idresource}
                       value={resource.idresource}
