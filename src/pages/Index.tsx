@@ -109,28 +109,28 @@ export default function Index() {
           <ThemeToggle />
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {menuItems.map((item) => (
             <Card 
               key={item.path} 
-              className="bg-[#132F4C] border-[#1E4976] hover:border-[#2977CC] transition-all duration-300 group"
+              className="bg-[#132F4C] border-[#1E4976] hover:border-[#2977CC] transition-all duration-300 group flex flex-col h-full"
             >
-              <CardHeader>
-                <div className="flex items-start space-x-4">
-                  <div className="p-2 rounded-lg bg-[#173A5E] group-hover:bg-[#2977CC] transition-colors">
+              <CardHeader className="flex-grow">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-lg bg-[#173A5E] group-hover:bg-[#2977CC] transition-colors shrink-0">
                     <item.icon className="h-6 w-6 text-[#66B2FF]" />
                   </div>
-                  <div>
-                    <CardTitle className="text-xl text-white mb-2">{item.title}</CardTitle>
+                  <div className="space-y-2">
+                    <CardTitle className="text-xl text-white">{item.title}</CardTitle>
                     <CardDescription className="text-gray-300">
                       {item.description}
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 <Button 
-                  className="w-full bg-[#173A5E] hover:bg-[#2977CC] text-white border-none"
+                  className="w-full bg-[#173A5E] hover:bg-[#2977CC] text-white border-none h-11"
                   onClick={() => navigate(item.path)}
                 >
                   {item.action}
