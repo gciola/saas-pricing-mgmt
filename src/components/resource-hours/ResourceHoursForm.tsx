@@ -123,7 +123,7 @@ export function ResourceHoursForm({
                   </FormControl>
                 </PopoverTrigger>
                 <PopoverContent className="w-[400px] p-0">
-                  {offers.length > 0 ? (
+                  {Array.isArray(offers) && offers.length > 0 ? (
                     <Command>
                       <CommandInput placeholder="Search offer..." />
                       <CommandEmpty>No offer found.</CommandEmpty>
@@ -168,10 +168,7 @@ export function ResourceHoursForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Resource</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select resource" />
@@ -220,10 +217,7 @@ export function ResourceHoursForm({
                 <FormLabel className="text-base">Monthly</FormLabel>
               </div>
               <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
+                <Switch checked={field.value} onCheckedChange={field.onChange} />
               </FormControl>
             </FormItem>
           )}
