@@ -123,7 +123,7 @@ export function ResourceHoursForm({
                   </FormControl>
                 </PopoverTrigger>
                 <PopoverContent className="w-[400px] p-0">
-                  {Array.isArray(offers) && offers.length > 0 ? (
+                  {offers && offers.length > 0 ? (
                     <Command>
                       <CommandInput placeholder="Search offer..." />
                       <CommandEmpty>No offer found.</CommandEmpty>
@@ -175,7 +175,7 @@ export function ResourceHoursForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {Array.isArray(resources) && resources.length > 0 ? (
+                  {resources && resources.length > 0 ? (
                     resources.map((resource) => (
                       <SelectItem
                         key={resource.idresource}
