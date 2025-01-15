@@ -65,7 +65,7 @@ export function ResourceHoursForm({
     },
   });
 
-  const { data: offers, isLoading: isLoadingOffers } = useQuery({
+  const { data: offers = [], isLoading: isLoadingOffers } = useQuery({
     queryKey: ["offers"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -77,7 +77,7 @@ export function ResourceHoursForm({
     },
   });
 
-  const { data: resources, isLoading: isLoadingResources } = useQuery({
+  const { data: resources = [], isLoading: isLoadingResources } = useQuery({
     queryKey: ["resources"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -91,10 +91,6 @@ export function ResourceHoursForm({
 
   if (isLoadingOffers || isLoadingResources) {
     return <div>Loading...</div>;
-  }
-
-  if (!offers || !resources) {
-    return <div>No data available</div>;
   }
 
   return (
@@ -120,39 +116,45 @@ export function ResourceHoursForm({
                     >
                       {field.value
                         ? offers.find((offer) => offer.idoffer === field.value)
-                            ?.descoffer
+                            ?.descoffer || "Select offer..."
                         : "Select offer..."}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
                 <PopoverContent className="w-[400px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search offer..." />
-                    <CommandEmpty>No offer found.</CommandEmpty>
-                    <CommandGroup>
-                      {offers.map((offer) => (
-                        <CommandItem
-                          value={offer.descoffer}
-                          key={offer.idoffer}
-                          onSelect={() => {
-                            form.setValue("idoffer", offer.idoffer);
-                            setOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              offer.idoffer === field.value
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          {offer.descoffer}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
+                  {offers.length > 0 ? (
+                    <Command>
+                      <CommandInput placeholder="Search offer..." />
+                      <CommandEmpty>No offer found.</CommandEmpty>
+                      <CommandGroup>
+                        {offers.map((offer) => (
+                          <CommandItem
+                            value={offer.descoffer}
+                            key={offer.idoffer}
+                            onSelect={() => {
+                              form.setValue("idoffer", offer.idoffer);
+                              setOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                offer.idoffer === field.value
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            {offer.descoffer}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  ) : (
+                    <div className="p-4 text-sm text-muted-foreground">
+                      No offers available
+                    </div>
+                  )}
                 </PopoverContent>
               </Popover>
               <FormMessage />
