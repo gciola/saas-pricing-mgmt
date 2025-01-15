@@ -123,38 +123,32 @@ export function ResourceHoursForm({
                   </FormControl>
                 </PopoverTrigger>
                 <PopoverContent className="w-[400px] p-0">
-                  {offers && offers.length > 0 ? (
-                    <Command>
-                      <CommandInput placeholder="Search offer..." />
-                      <CommandEmpty>No offer found.</CommandEmpty>
-                      <CommandGroup>
-                        {offers.map((offer) => (
-                          <CommandItem
-                            value={offer.descoffer}
-                            key={offer.idoffer}
-                            onSelect={() => {
-                              form.setValue("idoffer", offer.idoffer);
-                              setOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                offer.idoffer === field.value
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              )}
-                            />
-                            {offer.descoffer}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </Command>
-                  ) : (
-                    <div className="p-4 text-sm text-muted-foreground">
-                      No offers available
-                    </div>
-                  )}
+                  <Command>
+                    <CommandInput placeholder="Search offer..." />
+                    <CommandEmpty>No offer found.</CommandEmpty>
+                    <CommandGroup>
+                      {offers.map((offer) => (
+                        <CommandItem
+                          value={offer.descoffer}
+                          key={offer.idoffer}
+                          onSelect={() => {
+                            form.setValue("idoffer", offer.idoffer);
+                            setOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              offer.idoffer === field.value
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                          {offer.descoffer}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
                 </PopoverContent>
               </Popover>
               <FormMessage />
@@ -175,20 +169,14 @@ export function ResourceHoursForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {resources && resources.length > 0 ? (
-                    resources.map((resource) => (
-                      <SelectItem
-                        key={resource.idresource}
-                        value={resource.idresource}
-                      >
-                        {resource.description}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="" disabled>
-                      No resources available
+                  {resources.map((resource) => (
+                    <SelectItem
+                      key={resource.idresource}
+                      value={resource.idresource}
+                    >
+                      {resource.description}
                     </SelectItem>
-                  )}
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />
