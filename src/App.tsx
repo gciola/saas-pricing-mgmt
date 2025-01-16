@@ -14,6 +14,7 @@ import Offers from "@/pages/Offers";
 import OfferGroups from "@/pages/OfferGroups";
 import Resources from "@/pages/Resources";
 import ResourceHours from "@/pages/ResourceHours";
+import Pricing from "@/pages/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ResourceHours />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/pricing"
+                element={
+                  <ProtectedRoute>
+                    <Pricing />
                   </ProtectedRoute>
                 }
               />
