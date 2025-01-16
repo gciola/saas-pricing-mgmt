@@ -3,13 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
   Form,
   FormControl,
   FormField,
@@ -17,14 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { useForm } from "react-hook-form";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -54,8 +40,6 @@ export function ResourceHoursForm({
   editingHours,
   onSubmit,
 }: ResourceHoursFormProps) {
-  const [open, setOpen] = useState(false);
-
   const form = useForm({
     defaultValues: {
       idoffer: editingHours?.idoffer || "",
@@ -100,57 +84,25 @@ export function ResourceHoursForm({
           control={form.control}
           name="idoffer"
           render={({ field }) => (
-            <FormItem className="flex flex-col">
+            <FormItem>
               <FormLabel>Offer</FormLabel>
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={open}
-                      className={cn(
-                        "w-full justify-between",
-                        !field.value && "text-muted-foreground"
-                      )}
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select offer" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {offers.map((offer) => (
+                    <SelectItem
+                      key={offer.idoffer}
+                      value={offer.idoffer}
                     >
-                      {field.value
-                        ? offers.find((offer) => offer.idoffer === field.value)
-                            ?.descoffer || "Select offer..."
-                        : "Select offer..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search offer..." />
-                    <CommandEmpty>No offer found.</CommandEmpty>
-                    <CommandGroup>
-                      {offers?.map((offer) => (
-                        <CommandItem
-                          value={offer.descoffer}
-                          key={offer.idoffer}
-                          onSelect={() => {
-                            form.setValue("idoffer", offer.idoffer);
-                            setOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              offer.idoffer === field.value
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          {offer.descoffer}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+                      {offer.descoffer}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -169,7 +121,7 @@ export function ResourceHoursForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {resources?.map((resource) => (
+                  {resources.map((resource) => (
                     <SelectItem
                       key={resource.idresource}
                       value={resource.idresource}
