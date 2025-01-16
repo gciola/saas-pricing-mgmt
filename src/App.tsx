@@ -14,6 +14,7 @@ import Offers from "@/pages/Offers";
 import OfferGroups from "@/pages/OfferGroups";
 import Resources from "@/pages/Resources";
 import ResourceHours from "@/pages/ResourceHours";
+import HostingCosts from "@/pages/HostingCosts";
 import Pricing from "@/pages/Pricing";
 import Settings from "@/pages/Settings";
 
@@ -80,6 +81,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ResourceHours />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/hosting"
+                element={
+                  <ProtectedRoute>
+                    <HostingCosts />
                   </ProtectedRoute>
                 }
               />
