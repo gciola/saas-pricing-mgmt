@@ -20,6 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ResourceHoursFormProps {
   editingHours?: {
@@ -40,6 +44,8 @@ export function ResourceHoursForm({
   editingHours,
   onSubmit,
 }: ResourceHoursFormProps) {
+  const [open, setOpen] = useState(false);
+
   const form = useForm({
     defaultValues: {
       idoffer: editingHours?.idoffer || "",
@@ -84,25 +90,51 @@ export function ResourceHoursForm({
           control={form.control}
           name="idoffer"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex flex-col">
               <FormLabel>Offer</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select offer" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {offers.map((offer) => (
-                    <SelectItem
-                      key={offer.idoffer}
-                      value={offer.idoffer}
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={open}
+                      className="justify-between"
                     >
-                      {offer.descoffer}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                      {field.value
+                        ? offers.find((offer) => offer.idoffer === field.value)?.descoffer
+                        : "Select offer..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="p-0">
+                  <Command>
+                    <CommandInput placeholder="Search offer..." />
+                    <CommandEmpty>No offer found.</CommandEmpty>
+                    <CommandGroup>
+                      {offers.map((offer) => (
+                        <CommandItem
+                          key={offer.idoffer}
+                          value={offer.idoffer}
+                          onSelect={() => {
+                            form.setValue("idoffer", offer.idoffer);
+                            setOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              field.value === offer.idoffer ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {offer.descoffer}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               <FormMessage />
             </FormItem>
           )}
