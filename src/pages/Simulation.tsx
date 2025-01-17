@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HomeButton } from "@/components/HomeButton";
@@ -39,6 +39,14 @@ type SimulationResult = {
   };
 };
 
+type SimulationKey = {
+  product: string;
+  franchise: string;
+  duration: string;
+  hubQty: string;
+  partnerQty: string;
+};
+
 export default function Simulation() {
   const { toast } = useToast();
   const [selectedProduct, setSelectedProduct] = useState("");
@@ -47,6 +55,9 @@ export default function Simulation() {
   const [hubQty, setHubQty] = useState("0");
   const [partnerQty, setPartnerQty] = useState("0");
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
+
+  // Cache for simulation results
+  const [simulationCache, setSimulationCache] = useState<Record<string, SimulationResult>>({});
 
   const { data: products } = useQuery({
     queryKey: ["products"],
@@ -72,10 +83,31 @@ export default function Simulation() {
     },
   });
 
+  const getCacheKey = useCallback((key: SimulationKey) => {
+    return `${key.product}|${key.franchise}|${key.duration}|${key.hubQty}|${key.partnerQty}`;
+  }, []);
+
   const handleSimulate = async () => {
     try {
       // Clear previous results before new simulation
       setSimulationResult(null);
+
+      // Check cache first
+      const cacheKey = getCacheKey({
+        product: selectedProduct,
+        franchise: selectedFranchise,
+        duration: contractDuration,
+        hubQty,
+        partnerQty,
+      });
+
+      if (simulationCache[cacheKey]) {
+        setSimulationResult(simulationCache[cacheKey]);
+        toast({
+          title: "Simulação carregada do cache",
+        });
+        return;
+      }
 
       const { data, error } = await supabase.rpc("getbasepricedeal", {
         dealnr: "0",
@@ -89,7 +121,13 @@ export default function Simulation() {
       if (error) throw error;
       
       if (data) {
-        setSimulationResult(data as SimulationResult);
+        const result = data as SimulationResult;
+        setSimulationResult(result);
+        // Store in cache
+        setSimulationCache(prev => ({
+          ...prev,
+          [cacheKey]: result
+        }));
         toast({
           title: "Simulação realizada com sucesso",
         });
