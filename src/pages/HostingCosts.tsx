@@ -17,7 +17,7 @@ import { PlusCircle } from "lucide-react";
 
 type HostingCost = {
   idproduct: number;
-  hcost: number;
+  hcost: number | null;
 };
 
 export default function HostingCosts() {
@@ -39,20 +39,25 @@ export default function HostingCosts() {
   });
 
   const mutation = useMutation({
-    mutationFn: async (cost: Partial<HostingCost>) => {
+    mutationFn: async (hostingCost: HostingCost) => {
       if (editingCost) {
         const { error } = await supabase
           .from("hostingcosts")
-          .update(cost)
+          .update({ hcost: hostingCost.hcost })
           .eq("idproduct", editingCost.idproduct);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("hostingcosts").insert(cost);
+        const { error } = await supabase
+          .from("hostingcosts")
+          .insert({ 
+            idproduct: hostingCost.idproduct,
+            hcost: hostingCost.hcost 
+          });
         if (error) throw error;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["hostingCosts"] });
+      queryClient.invalidateQueries({ queryKey: ["hostingcosts"] });
       setIsOpen(false);
       setEditingCost(null);
       toast({

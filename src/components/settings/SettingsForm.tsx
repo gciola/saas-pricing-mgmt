@@ -48,7 +48,9 @@ export function SettingsForm({
           .from("settings")
           .update({ value: values.value })
           .eq("parameter", settings.parameter)
-      : await supabase.from("settings").insert([values]);
+      : await supabase
+          .from("settings")
+          .insert({ parameter: values.parameter, value: values.value });
 
     if (error) {
       console.error("Error saving setting:", error);

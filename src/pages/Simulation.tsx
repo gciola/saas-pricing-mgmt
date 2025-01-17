@@ -21,16 +21,17 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 
+type Product = {
+  descoferta: string;
+  precounitario: number;
+  fatliquido: number;
+  custototal: number;
+  margemvalor: number;
+  margempercent: number;
+};
+
 type SimulationResult = {
-  produtos: Array<{
-    codoferta: string;
-    descoferta: string;
-    precounitario: number;
-    fatliquido: number;
-    custototal: number;
-    margemvalor: number;
-    margempercent: number;
-  }>;
+  produtos: Product[];
   resumo: {
     totalfatliquido: number;
     totalmargemvalor: number;
@@ -83,7 +84,11 @@ export default function Simulation() {
       });
 
       if (error) throw error;
-      setSimulationResult(data);
+      
+      // Ensure the data matches our SimulationResult type
+      const typedData = data as SimulationResult;
+      setSimulationResult(typedData);
+      
       toast({
         title: "Simulação realizada com sucesso",
       });
