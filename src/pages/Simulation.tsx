@@ -44,8 +44,8 @@ export default function Simulation() {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [selectedFranchise, setSelectedFranchise] = useState("");
   const [contractDuration, setContractDuration] = useState("12");
-  const [hubQty, setHubQty] = useState("1");
-  const [partnerQty, setPartnerQty] = useState("1");
+  const [hubQty, setHubQty] = useState("0");
+  const [partnerQty, setPartnerQty] = useState("0");
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
 
   const { data: products } = useQuery({
@@ -74,6 +74,9 @@ export default function Simulation() {
 
   const handleSimulate = async () => {
     try {
+      // Clear previous results before new simulation
+      setSimulationResult(null);
+
       const { data, error } = await supabase.rpc("getbasepricedeal", {
         dealnr: "0",
         apidescproduct: selectedProduct,
@@ -85,19 +88,27 @@ export default function Simulation() {
 
       if (error) throw error;
       
-      // Ensure the data matches our SimulationResult type
-      const typedData = data as SimulationResult;
-      setSimulationResult(typedData);
-      
-      toast({
-        title: "Simulação realizada com sucesso",
-      });
+      if (data) {
+        setSimulationResult(data as SimulationResult);
+        toast({
+          title: "Simulação realizada com sucesso",
+        });
+      }
     } catch (error) {
       toast({
         title: "Erro ao realizar simulação",
         variant: "destructive",
       });
     }
+  };
+
+  const resetSimulation = () => {
+    setSelectedProduct("");
+    setSelectedFranchise("");
+    setContractDuration("12");
+    setHubQty("0");
+    setPartnerQty("0");
+    setSimulationResult(null);
   };
 
   return (
@@ -159,7 +170,7 @@ export default function Simulation() {
           <label className="text-sm font-medium">Quantidade Hub</label>
           <Input
             type="number"
-            min="1"
+            min="0"
             step="1"
             value={hubQty}
             onChange={(e) => setHubQty(e.target.value)}
@@ -170,16 +181,19 @@ export default function Simulation() {
           <label className="text-sm font-medium">Quantidade Parceiro</label>
           <Input
             type="number"
-            min="1"
+            min="0"
             step="1"
             value={partnerQty}
             onChange={(e) => setPartnerQty(e.target.value)}
           />
         </div>
 
-        <div className="flex items-end">
-          <Button onClick={handleSimulate} className="w-full">
+        <div className="flex items-end gap-2">
+          <Button onClick={handleSimulate} className="flex-1">
             Simular
+          </Button>
+          <Button onClick={resetSimulation} variant="outline">
+            Limpar
           </Button>
         </div>
       </div>
@@ -200,8 +214,8 @@ export default function Simulation() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {simulationResult.produtos.map((produto) => (
-                  <TableRow key={produto.codoferta}>
+                {simulationResult.produtos.map((produto, index) => (
+                  <TableRow key={`${produto.descoferta}-${index}`}>
                     <TableCell>{produto.descoferta}</TableCell>
                     <TableCell>R$ {produto.precounitario.toFixed(2)}</TableCell>
                     <TableCell>R$ {produto.fatliquido.toFixed(2)}</TableCell>
