@@ -55,8 +55,6 @@ export default function Simulation() {
   const [hubQty, setHubQty] = useState("0");
   const [partnerQty, setPartnerQty] = useState("0");
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
-
-  // Cache for simulation results
   const [simulationCache, setSimulationCache] = useState<Record<string, SimulationResult>>({});
 
   const { data: products } = useQuery({
@@ -294,5 +292,4 @@ export default function Simulation() {
         </div>
       )}
     </div>
-  );
 }
