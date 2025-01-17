@@ -237,6 +237,5 @@ export default function Simulation() {
         </div>
       )}
     </div>
-  </div>
   );
 }
