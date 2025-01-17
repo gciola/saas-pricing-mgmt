@@ -17,6 +17,7 @@ import ResourceHours from "@/pages/ResourceHours";
 import HostingCosts from "@/pages/HostingCosts";
 import Pricing from "@/pages/Pricing";
 import Settings from "@/pages/Settings";
+import Simulation from "@/pages/Simulation";
 
 const queryClient = new QueryClient();
 
@@ -105,6 +106,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Settings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/simulation"
+                element={
+                  <ProtectedRoute>
+                    <Simulation />
                   </ProtectedRoute>
                 }
               />
