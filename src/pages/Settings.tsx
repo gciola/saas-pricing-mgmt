@@ -8,10 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 export default function Settings() {
   const [open, setOpen] = useState(false);
-  const [editingSettings, setEditingSettings] = useState<{
-    parameter: string;
-    value: string | null;
-  } | null>(null);
+  const [editingSettings, setEditingSettings] = useState(null);
   const { toast } = useToast();
 
   const { data: settings, refetch } = useQuery({
@@ -21,7 +18,6 @@ export default function Settings() {
         .from("settings")
         .select("*")
         .order("parameter");
-
       if (error) {
         console.error("Error fetching settings:", error);
         toast({
@@ -31,12 +27,11 @@ export default function Settings() {
         });
         return [];
       }
-
       return data;
     },
   });
 
-  const handleEdit = (settings: { parameter: string; value: string | null }) => {
+  const handleEdit = (settings) => {
     setEditingSettings(settings);
     setOpen(true);
   };

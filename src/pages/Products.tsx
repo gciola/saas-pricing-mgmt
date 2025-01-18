@@ -23,72 +23,54 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { PlusCircle, Pencil } from "lucide-react";
 
-type Product = {
-  idproduct: number;
-  description: string;
-  franchisetype: string | null;
-  modules: any | null;
-  combo: boolean | null;
-  codproduct: string | null;
-};
-
 const Products = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["products"],
     queryFn: async () => {
       const { data, error } = await supabase.from("products").select("*");
       if (error) throw error;
-      return data as Product[];
+      return data;
     },
   });
 
   const mutation = useMutation({
-    mutationFn: async (product: Partial<Product>) => {
-      if (editingProduct) {
-        const { error } = await supabase
-          .from("products")
-          .update(product)
-          .eq("idproduct", editingProduct.idproduct);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("products").insert(product);
-        if (error) throw error;
-      }
+    mutationFn: async (newProduct) => {
+      const { data, error } = await supabase.from("products").insert(newProduct);
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      setIsOpen(false);
-      setEditingProduct(null);
+      queryClient.invalidateQueries(["products"]);
       toast({
         title: "Success",
-        description: `Product ${editingProduct ? "updated" : "created"} successfully`,
+        description: "Product added successfully",
       });
     },
-    onError: (error) => {
+    onError: () => {
       toast({
-        title: "Error",
-        description: error.message,
         variant: "destructive",
+        title: "Error",
+        description: "Failed to add product",
       });
     },
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const product = {
-      description: formData.get("description") as string,
-      franchisetype: formData.get("franchisetype") as string,
-      codproduct: formData.get("codproduct") as string,
-      combo: formData.get("combo") === "on",
-      modules: formData.get("modules") ? JSON.parse(formData.get("modules") as string) : null,
+    const formData = new FormData(e.target);
+    const newProduct = {
+      name: formData.get("name"),
+      description: formData.get("description"),
+      price: formData.get("price"),
+      available: formData.get("available") === "on",
     };
-    mutation.mutate(product);
+    await mutation.mutateAsync(newProduct);
+    setIsOpen(false);
   };
 
   if (isLoading) {
@@ -103,70 +85,25 @@ const Products = () => {
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setEditingProduct(null)}>
-              <PlusCircle className="mr-2" />
+            <Button variant="outline">
+              <PlusCircle className="mr-2 h-4 w-4" />
               Add Product
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{editingProduct ? "Edit" : "Add"} Product</DialogTitle>
+              <DialogTitle>Add New Product</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium mb-1">
-                  Description
-                </label>
-                <Input
-                  id="description"
-                  name="description"
-                  defaultValue={editingProduct?.description}
-                  required
-                />
+            <form onSubmit={handleSubmit}>
+              <div className="grid gap-4">
+                <Input name="name" placeholder="Product Name" required />
+                <Textarea name="description" placeholder="Product Description" required />
+                <Input name="price" type="number" placeholder="Price" required />
+                <Checkbox name="available">Available</Checkbox>
               </div>
-              <div>
-                <label htmlFor="franchisetype" className="block text-sm font-medium mb-1">
-                  Franchise Type
-                </label>
-                <Input
-                  id="franchisetype"
-                  name="franchisetype"
-                  defaultValue={editingProduct?.franchisetype || ""}
-                />
+              <div className="mt-4 flex justify-end">
+                <Button type="submit">Save</Button>
               </div>
-              <div>
-                <label htmlFor="codproduct" className="block text-sm font-medium mb-1">
-                  Product Code
-                </label>
-                <Input
-                  id="codproduct"
-                  name="codproduct"
-                  defaultValue={editingProduct?.codproduct || ""}
-                />
-              </div>
-              <div>
-                <label htmlFor="modules" className="block text-sm font-medium mb-1">
-                  Modules (JSON)
-                </label>
-                <Textarea
-                  id="modules"
-                  name="modules"
-                  defaultValue={editingProduct?.modules ? JSON.stringify(editingProduct.modules) : ""}
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="combo"
-                  name="combo"
-                  defaultChecked={editingProduct?.combo || false}
-                />
-                <label htmlFor="combo" className="text-sm font-medium">
-                  Is Combo
-                </label>
-              </div>
-              <Button type="submit" className="w-full">
-                {editingProduct ? "Update" : "Create"} Product
-              </Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -175,31 +112,27 @@ const Products = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
+            <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
-            <TableHead>Franchise Type</TableHead>
-            <TableHead>Product Code</TableHead>
-            <TableHead>Is Combo</TableHead>
+            <TableHead>Price</TableHead>
+            <TableHead>Available</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {products?.map((product) => (
-            <TableRow key={product.idproduct}>
-              <TableCell>{product.idproduct}</TableCell>
+          {products.map((product) => (
+            <TableRow key={product.id}>
+              <TableCell>{product.name}</TableCell>
               <TableCell>{product.description}</TableCell>
-              <TableCell>{product.franchisetype}</TableCell>
-              <TableCell>{product.codproduct}</TableCell>
-              <TableCell>{product.combo ? "Yes" : "No"}</TableCell>
+              <TableCell>{product.price}</TableCell>
               <TableCell>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setEditingProduct(product);
-                    setIsOpen(true);
-                  }}
-                >
+                <Checkbox checked={product.available} readOnly />
+              </TableCell>
+              <TableCell>
+                <Button onClick={() => {
+                  setEditingProduct(product);
+                  setIsOpen(true);
+                }}>
                   <Pencil className="h-4 w-4" />
                 </Button>
               </TableCell>
