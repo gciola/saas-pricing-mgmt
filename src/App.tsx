@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { Sidebar } from "@/components/Sidebar";
 
 // Pages
 import Index from "@/pages/Index";
@@ -24,19 +25,22 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
+      <ThemeProvider defaultTheme="system" storageKey="ui-theme">
         <AuthProvider>
           <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                }
-              />
+            <div className="min-h-screen bg-background">
+              <Sidebar />
+              <main className="lg:pl-64 transition-all duration-300">
+                <Routes>
+                  <Route path="/auth" element={<Auth />} />
+                  <Route
+                    path="/"
+                    element={
+                      <ProtectedRoute>
+                        <Index />
+                      </ProtectedRoute>
+                    }
+                  />
               <Route
                 path="/products"
                 element={
@@ -117,7 +121,9 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-            </Routes>
+                </Routes>
+              </main>
+            </div>
             <Toaster />
           </BrowserRouter>
         </AuthProvider>
