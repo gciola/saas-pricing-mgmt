@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { SettingsTable } from "@/components/settings/SettingsTable";
 import { SettingsForm } from "@/components/settings/SettingsForm";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { HomeButton } from "@/components/HomeButton";
 import { useToast } from "@/components/ui/use-toast";
 
 export default function Settings() {
@@ -56,7 +55,6 @@ export default function Settings() {
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-4">
-          <HomeButton />
           <h1 className="text-2xl font-bold">Settings</h1>
         </div>
       </div>
