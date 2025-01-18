@@ -21,12 +21,13 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 type Product = {
-  descoferta: string;
-  precounitario: number;
-  fatliquido: number;
-  custototal: number;
-  margemvalor: number;
-  margempercent: number;
+  description: string;
+  franchisetype: string | null;
+};
+
+type Franchise = {
+  frlabel: string;
+  franchisetype: string | null;
 };
 
 type SimulationResult = {
@@ -61,10 +62,10 @@ export default function Simulation() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("description")
+        .select("description, franchisetype")
         .order("description");
       if (error) throw error;
-      return data;
+      return data as Product[];
     },
   });
 
@@ -73,23 +74,34 @@ export default function Simulation() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("franchise")
-        .select("frlabel")
+        .select("frlabel, franchisetype")
         .order("frlabel");
       if (error) throw error;
-      return data;
+      return data as Franchise[];
     },
   });
+
+  const selectedProductFranchiseType = products?.find(
+    (p) => p.description === selectedProduct
+  )?.franchisetype;
+
+  const filteredFranchises = franchises?.filter(
+    (f) => !selectedProductFranchiseType || f.franchisetype === selectedProductFranchiseType
+  );
 
   const getCacheKey = useCallback((key: SimulationKey) => {
     return `${key.product}|${key.franchise}|${key.duration}|${key.hubQty}|${key.partnerQty}`;
   }, []);
 
+  const handleProductChange = (value: string) => {
+    setSelectedProduct(value);
+    setSelectedFranchise(""); // Reset franchise when product changes
+  };
+
   const handleSimulate = async () => {
     try {
-      // Clear previous results before new simulation
       setSimulationResult(null);
 
-      // Check cache first
       const cacheKey = getCacheKey({
         product: selectedProduct,
         franchise: selectedFranchise,
@@ -120,7 +132,6 @@ export default function Simulation() {
       if (data) {
         const result = data as SimulationResult;
         setSimulationResult(result);
-        // Store in cache
         setSimulationCache(prev => ({
           ...prev,
           [cacheKey]: result
@@ -155,7 +166,7 @@ export default function Simulation() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <div className="space-y-2">
           <label className="text-sm font-medium">Produto</label>
-          <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+          <Select value={selectedProduct} onValueChange={handleProductChange}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione um produto" />
             </SelectTrigger>
@@ -171,12 +182,16 @@ export default function Simulation() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium">Franquia</label>
-          <Select value={selectedFranchise} onValueChange={setSelectedFranchise}>
+          <Select 
+            value={selectedFranchise} 
+            onValueChange={setSelectedFranchise}
+            disabled={!selectedProduct}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Selecione uma franquia" />
             </SelectTrigger>
             <SelectContent>
-              {franchises?.map((franchise) => (
+              {filteredFranchises?.map((franchise) => (
                 <SelectItem key={franchise.frlabel} value={franchise.frlabel}>
                   {franchise.frlabel}
                 </SelectItem>
