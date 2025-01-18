@@ -92,17 +92,17 @@ export default function Index() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#0A1929] text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-12">
           <div className="text-center w-full">
             <h1 className="text-4xl font-bold mb-4">Gerenciador de Ofertas SaaS</h1>
-            <p className="text-gray-300 max-w-3xl mx-auto">
+            <p className="text-muted-foreground max-w-3xl mx-auto">
               Gerencie as ofertas SaaS da sua empresa adicionando produtos, ofertas,
               agrupamento de ofertas, custos diversos e obtenha as margens efetivas em
               suas propostas comerciais.
             </p>
-            <p className="text-gray-400 mt-4 text-sm">
+            <p className="text-muted-foreground mt-4 text-sm">
               As alterações efetuadas nos dados refletirão na precificação das
               propostas adicionadas no CRM Bitrix24 da sua empresa
             </p>
@@ -110,20 +110,20 @@ export default function Index() {
           <ThemeToggle />
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {menuItems.map((item) => (
             <Card 
               key={item.path} 
-              className="bg-[#132F4C] border-[#1E4976] hover:border-[#2977CC] transition-all duration-300 group flex flex-col h-full"
+              className="border border-border hover:border-primary/50 transition-all duration-300 group flex flex-col h-full"
             >
               <CardHeader className="flex-grow">
                 <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-lg bg-[#173A5E] group-hover:bg-[#2977CC] transition-colors shrink-0">
-                    <item.icon className="h-6 w-6 text-[#66B2FF]" />
+                  <div className="p-3 rounded-lg bg-secondary group-hover:bg-primary/10 transition-colors shrink-0">
+                    <item.icon className="h-6 w-6 text-primary" />
                   </div>
                   <div className="space-y-2">
-                    <CardTitle className="text-xl text-white">{item.title}</CardTitle>
-                    <CardDescription className="text-gray-300">
+                    <CardTitle className="text-xl">{item.title}</CardTitle>
+                    <CardDescription className="text-muted-foreground">
                       {item.description}
                     </CardDescription>
                   </div>
@@ -131,7 +131,7 @@ export default function Index() {
               </CardHeader>
               <CardContent className="pt-4">
                 <Button 
-                  className="w-full bg-[#173A5E] hover:bg-[#2977CC] text-white border-none h-11"
+                  className="w-full"
                   onClick={() => navigate(item.path)}
                 >
                   {item.action}

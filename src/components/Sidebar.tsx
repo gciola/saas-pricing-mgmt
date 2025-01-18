@@ -3,10 +3,11 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Home } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 
 const menuItems = [
+  { path: "/", label: "Home", icon: Home },
   { path: "/products", label: "Products" },
   { path: "/franchises", label: "Franchises" },
   { path: "/offers", label: "Offers" },
@@ -57,13 +58,14 @@ export function Sidebar() {
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    "block px-4 py-2 rounded-md transition-colors",
+                    "flex items-center gap-2 px-4 py-2 rounded-md transition-colors",
                     location.pathname === item.path
                       ? "bg-primary text-primary-foreground"
                       : "hover:bg-muted"
                   )}
                   onClick={() => setIsOpen(false)}
                 >
+                  {item.icon && <item.icon className="h-4 w-4" />}
                   {item.label}
                 </Link>
               ))}
