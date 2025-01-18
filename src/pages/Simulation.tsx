@@ -30,8 +30,18 @@ type Franchise = {
   franchisetype: string | null;
 };
 
+type SimulationProduct = {
+  codoferta: string;
+  descoferta: string;
+  precounitario: number;
+  fatliquido: number;
+  custototal: number;
+  margemvalor: number;
+  margempercent: number;
+};
+
 type SimulationResult = {
-  produtos: Product[];
+  produtos: SimulationProduct[];
   resumo: {
     totalfatliquido: number;
     totalmargemvalor: number;
@@ -262,7 +272,7 @@ export default function Simulation() {
               </TableHeader>
               <TableBody>
                 {simulationResult.produtos.map((produto, index) => (
-                  <TableRow key={`${produto.descoferta}-${index}`}>
+                  <TableRow key={`${produto.codoferta}-${index}`}>
                     <TableCell>{produto.descoferta}</TableCell>
                     <TableCell>R$ {produto.precounitario.toFixed(2)}</TableCell>
                     <TableCell>R$ {produto.fatliquido.toFixed(2)}</TableCell>

@@ -22,12 +22,15 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { PlusCircle, Pencil } from "lucide-react";
+import { Database } from "@/integrations/supabase/types";
+
+type Product = Database['public']['Tables']['products']['Row'];
 
 const Products = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["products"],
@@ -39,38 +42,49 @@ const Products = () => {
   });
 
   const mutation = useMutation({
-    mutationFn: async (newProduct) => {
-      const { data, error } = await supabase.from("products").insert(newProduct);
-      if (error) throw error;
-      return data;
+    mutationFn: async (product: Partial<Product>) => {
+      if (editingProduct) {
+        const { error } = await supabase
+          .from("products")
+          .update(product)
+          .eq("idproduct", editingProduct.idproduct);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("products").insert(product);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["products"]);
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      setIsOpen(false);
+      setEditingProduct(null);
       toast({
         title: "Success",
-        description: "Product added successfully",
+        description: `Product ${editingProduct ? "updated" : "created"} successfully`,
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        variant: "destructive",
         title: "Error",
-        description: "Failed to add product",
+        description: error.message,
+        variant: "destructive",
       });
     },
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const newProduct = {
-      name: formData.get("name"),
-      description: formData.get("description"),
-      price: formData.get("price"),
-      available: formData.get("available") === "on",
+    const formData = new FormData(e.currentTarget);
+    const product = {
+      description: formData.get("description") as string,
+      franchisetype: formData.get("franchisetype") as string,
+      codproduct: formData.get("codproduct") as string,
+      combo: formData.get("combo") === "on",
+      modules: formData.get("modules") 
+        ? JSON.parse(formData.get("modules") as string) 
+        : null
     };
-    await mutation.mutateAsync(newProduct);
-    setIsOpen(false);
+    mutation.mutate(product);
   };
 
   if (isLoading) {
@@ -85,25 +99,85 @@ const Products = () => {
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline">
-              <PlusCircle className="mr-2 h-4 w-4" />
+            <Button onClick={() => setEditingProduct(null)}>
+              <PlusCircle className="mr-2" />
               Add Product
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Product</DialogTitle>
+              <DialogTitle>{editingProduct ? "Edit" : "Add"} Product</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit}>
-              <div className="grid gap-4">
-                <Input name="name" placeholder="Product Name" required />
-                <Textarea name="description" placeholder="Product Description" required />
-                <Input name="price" type="number" placeholder="Price" required />
-                <Checkbox name="available">Available</Checkbox>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Description
+                </label>
+                <Input
+                  id="description"
+                  name="description"
+                  defaultValue={editingProduct?.description}
+                  required
+                />
               </div>
-              <div className="mt-4 flex justify-end">
-                <Button type="submit">Save</Button>
+              <div>
+                <label
+                  htmlFor="franchisetype"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Franchise Type
+                </label>
+                <Input
+                  id="franchisetype"
+                  name="franchisetype"
+                  defaultValue={editingProduct?.franchisetype || ""}
+                />
               </div>
+              <div>
+                <label
+                  htmlFor="codproduct"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Product Code
+                </label>
+                <Input
+                  id="codproduct"
+                  name="codproduct"
+                  defaultValue={editingProduct?.codproduct || ""}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="modules"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Modules (JSON)
+                </label>
+                <Textarea
+                  id="modules"
+                  name="modules"
+                  defaultValue={editingProduct?.modules ? JSON.stringify(editingProduct.modules) : ""}
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="combo"
+                  name="combo"
+                  defaultChecked={editingProduct?.combo || false}
+                />
+                <label
+                  htmlFor="combo"
+                  className="text-sm font-medium"
+                >
+                  Is Combo
+                </label>
+              </div>
+              <Button type="submit" className="w-full">
+                {editingProduct ? "Update" : "Create"} Product
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -112,27 +186,31 @@ const Products = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
+            <TableHead>ID</TableHead>
             <TableHead>Description</TableHead>
-            <TableHead>Price</TableHead>
-            <TableHead>Available</TableHead>
+            <TableHead>Franchise Type</TableHead>
+            <TableHead>Product Code</TableHead>
+            <TableHead>Is Combo</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {products.map((product) => (
-            <TableRow key={product.id}>
-              <TableCell>{product.name}</TableCell>
+          {products?.map((product) => (
+            <TableRow key={product.idproduct}>
+              <TableCell>{product.idproduct}</TableCell>
               <TableCell>{product.description}</TableCell>
-              <TableCell>{product.price}</TableCell>
+              <TableCell>{product.franchisetype}</TableCell>
+              <TableCell>{product.codproduct}</TableCell>
+              <TableCell>{product.combo ? "Yes" : "No"}</TableCell>
               <TableCell>
-                <Checkbox checked={product.available} readOnly />
-              </TableCell>
-              <TableCell>
-                <Button onClick={() => {
-                  setEditingProduct(product);
-                  setIsOpen(true);
-                }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setEditingProduct(product);
+                    setIsOpen(true);
+                  }}
+                >
                   <Pencil className="h-4 w-4" />
                 </Button>
               </TableCell>
