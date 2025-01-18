@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { HomeButton } from "@/components/HomeButton";
 import {
   Table,
   TableBody,
@@ -93,10 +92,7 @@ const Franchises = () => {
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-2">
-          <HomeButton />
-          <h1 className="text-2xl font-bold">Franchises</h1>
-        </div>
+        <h1 className="text-2xl font-bold">Franchises</h1>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => setEditingFranchise(null)}>

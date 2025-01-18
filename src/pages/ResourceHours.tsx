@@ -4,7 +4,6 @@ import { ResourceHoursTable } from "@/components/resource-hours/ResourceHoursTab
 import { ResourceHoursForm } from "@/components/resource-hours/ResourceHoursForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { HomeButton } from "@/components/HomeButton";
 import {
   Dialog,
   DialogContent,
@@ -96,12 +95,11 @@ export default function ResourceHours() {
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-2">
-          <HomeButton />
           <h1 className="text-3xl font-bold">Resource Hours</h1>
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Add Resource Hours
+          </Button>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Add Resource Hours
-        </Button>
       </div>
 
       <ResourceHoursTable

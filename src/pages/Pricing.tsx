@@ -4,7 +4,6 @@ import { PricingTable } from "@/components/pricing/PricingTable";
 import { PricingForm } from "@/components/pricing/PricingForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { HomeButton } from "@/components/HomeButton";
 import {
   Dialog,
   DialogContent,
@@ -90,7 +89,6 @@ export default function Pricing() {
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-2">
-          <HomeButton />
           <h1 className="text-3xl font-bold">Pricing</h1>
         </div>
         <Button onClick={() => setIsDialogOpen(true)}>

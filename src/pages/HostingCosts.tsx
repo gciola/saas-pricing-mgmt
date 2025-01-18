@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { HomeButton } from "@/components/HomeButton";
 import { HostingCostsTable } from "@/components/hosting-costs/HostingCostsTable";
 import { HostingCostsForm } from "@/components/hosting-costs/HostingCostsForm";
 import {
@@ -57,7 +56,7 @@ export default function HostingCosts() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["hostingcosts"] });
+      queryClient.invalidateQueries({ queryKey: ["hostingCosts"] });
       setIsOpen(false);
       setEditingCost(null);
       toast({
@@ -106,36 +105,35 @@ export default function HostingCosts() {
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-2">
-          <HomeButton />
           <h1 className="text-2xl font-bold">Hosting Costs</h1>
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => setEditingCost(null)}>
+                <PlusCircle className="mr-2" />
+                Add Hosting Cost
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingCost ? "Edit" : "Add"} Hosting Cost
+                </DialogTitle>
+              </DialogHeader>
+              <HostingCostsForm
+                editingCost={editingCost}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  const cost = {
+                    idproduct: Number(formData.get("idproduct")),
+                    hcost: Number(formData.get("hcost")) / 100, // Convert percentage to decimal
+                  };
+                  mutation.mutate(cost);
+                }}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setEditingCost(null)}>
-              <PlusCircle className="mr-2" />
-              Add Hosting Cost
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingCost ? "Edit" : "Add"} Hosting Cost
-              </DialogTitle>
-            </DialogHeader>
-            <HostingCostsForm
-              editingCost={editingCost}
-              onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                const cost = {
-                  idproduct: Number(formData.get("idproduct")),
-                  hcost: Number(formData.get("hcost")) / 100, // Convert percentage to decimal
-                };
-                mutation.mutate(cost);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
       </div>
 
       <HostingCostsTable

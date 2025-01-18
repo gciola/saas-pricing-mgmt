@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { HomeButton } from "@/components/HomeButton";
 import {
   Select,
   SelectContent,
@@ -150,10 +149,7 @@ export default function Simulation() {
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-2">
-          <HomeButton />
-          <h1 className="text-2xl font-bold">Simulação de Margem</h1>
-        </div>
+        <h1 className="text-2xl font-bold">Simulação de Margem</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
