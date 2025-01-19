@@ -8,6 +8,7 @@ import { ThemeToggle } from "./components/ThemeToggle";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./components/AuthProvider";
 import Auth from "./pages/Auth";
+import Index from "./pages/Index";
 import "./App.css";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -47,7 +48,7 @@ function App() {
                   path="/"
                   element={
                     <PrivateRoute>
-                      <div>Home Page</div>
+                      <Index />
                     </PrivateRoute>
                   }
                 />
