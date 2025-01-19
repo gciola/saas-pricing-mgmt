@@ -30,7 +30,7 @@ function App() {
           <BrowserRouter>
             <div className="min-h-screen bg-background">
               <Sidebar />
-              <main className="lg:pl-64 transition-all duration-300">
+              <main className="lg:pl-64 pt-14">
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
                   <Route
