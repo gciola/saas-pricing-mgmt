@@ -7,16 +7,16 @@ import { Header } from "./Header";
 
 const menuItems = [
   { path: "/", label: "Home", icon: Home },
-  { path: "/products", label: "Products" },
-  { path: "/franchises", label: "Franchises" },
-  { path: "/offers", label: "Offers" },
-  { path: "/offer-groups", label: "Offer Groups" },
-  { path: "/resources", label: "Resources" },
-  { path: "/resource-hours", label: "Resource Hours" },
-  { path: "/hosting", label: "Hosting Costs" },
-  { path: "/pricing", label: "Pricing" },
-  { path: "/settings", label: "Settings" },
-  { path: "/simulation", label: "Simulation" },
+  { path: "/products", label: "Produtos" },
+  { path: "/franchises", label: "Franquias" },
+  { path: "/offers", label: "Ofertas" },
+  { path: "/offer-groups", label: "Grupos de Oferta" },
+  { path: "/resources", label: "Recursos" },
+  { path: "/resource-hours", label: "Horas de Recurso" },
+  { path: "/hosting", label: "Custos de Hosting" },
+  { path: "/pricing", label: "Preços" },
+  { path: "/settings", label: "Configurações" },
+  { path: "/simulation", label: "Simulação" },
 ];
 
 export function Sidebar() {
