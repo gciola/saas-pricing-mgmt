@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Menu, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -18,8 +18,26 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { useAuth } from "@/components/AuthProvider";
 
+const getPageTitle = (pathname: string) => {
+  const titles: { [key: string]: string } = {
+    "/": "Home",
+    "/products": "Produtos",
+    "/franchises": "Franquias",
+    "/offers": "Ofertas",
+    "/offer-groups": "Grupos de Oferta",
+    "/resources": "Recursos",
+    "/resource-hours": "Horas de Recurso",
+    "/hosting": "Custos de Hosting",
+    "/pricing": "Preços",
+    "/settings": "Configurações",
+    "/simulation": "Simulação",
+  };
+  return titles[pathname] || "";
+};
+
 export function Header({ toggleSidebar, isOpen }: { toggleSidebar: () => void; isOpen: boolean }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
   const [fullName, setFullName] = useState("");
@@ -81,6 +99,8 @@ export function Header({ toggleSidebar, isOpen }: { toggleSidebar: () => void; i
     }
   };
 
+  const pageTitle = getPageTitle(location.pathname);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
@@ -92,7 +112,7 @@ export function Header({ toggleSidebar, isOpen }: { toggleSidebar: () => void; i
         >
           {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </Button>
-        <div className="flex-1" />
+        <div className="flex-1 text-xl font-semibold">{pageTitle}</div>
         <Dialog>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
