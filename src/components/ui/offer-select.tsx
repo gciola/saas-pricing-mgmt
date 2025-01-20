@@ -45,6 +45,7 @@ export function OfferSelect({
     },
   });
 
+  // Render loading state
   if (isLoading) {
     return (
       <FormItem className="flex flex-col">
@@ -58,6 +59,7 @@ export function OfferSelect({
     );
   }
 
+  // Find selected offer after loading is complete
   const selectedOffer = offers.find((offer) => offer.idoffer === value);
 
   return (
@@ -77,32 +79,34 @@ export function OfferSelect({
             </Button>
           </FormControl>
         </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-          <Command>
-            <CommandInput placeholder="Procurar oferta..." />
-            <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
-            <CommandGroup>
-              {offers.map((offer) => (
-                <CommandItem
-                  key={offer.idoffer}
-                  value={offer.descoffer}
-                  onSelect={() => {
-                    onValueChange(offer.idoffer);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === offer.idoffer ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {offer.descoffer}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </Command>
-        </PopoverContent>
+        {offers.length > 0 && (
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Procurar oferta..." />
+              <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
+              <CommandGroup>
+                {offers.map((offer) => (
+                  <CommandItem
+                    key={offer.idoffer}
+                    value={offer.descoffer}
+                    onSelect={() => {
+                      onValueChange(offer.idoffer);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === offer.idoffer ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {offer.descoffer}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        )}
       </Popover>
     </FormItem>
   );
