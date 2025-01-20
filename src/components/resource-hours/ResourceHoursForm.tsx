@@ -80,8 +80,10 @@ export function ResourceHoursForm({
   });
 
   if (isLoadingOffers || isLoadingResources) {
-    return <div>Loading...</div>;
+    return <div>Carregando...</div>;
   }
+
+  const selectedOffer = offers.find((offer) => offer.idoffer === form.watch("idoffer"));
 
   return (
     <Form {...form}>
@@ -91,7 +93,7 @@ export function ResourceHoursForm({
           name="idoffer"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel>Offer</FormLabel>
+              <FormLabel>Oferta</FormLabel>
               <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                   <FormControl>
@@ -101,22 +103,20 @@ export function ResourceHoursForm({
                       aria-expanded={open}
                       className="justify-between"
                     >
-                      {field.value
-                        ? offers.find((offer) => offer.idoffer === field.value)?.descoffer
-                        : "Select offer..."}
+                      {selectedOffer?.descoffer || "Selecione a oferta..."}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
                 <PopoverContent className="p-0">
                   <Command>
-                    <CommandInput placeholder="Search offer..." />
-                    <CommandEmpty>No offer found.</CommandEmpty>
+                    <CommandInput placeholder="Procurar oferta..." />
+                    <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
                     <CommandGroup>
                       {offers.map((offer) => (
                         <CommandItem
                           key={offer.idoffer}
-                          value={offer.idoffer}
+                          value={offer.descoffer}
                           onSelect={() => {
                             form.setValue("idoffer", offer.idoffer);
                             setOpen(false);
@@ -145,11 +145,11 @@ export function ResourceHoursForm({
           name="idresource"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Resource</FormLabel>
+              <FormLabel>Recurso</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select resource" />
+                    <SelectValue placeholder="Selecione o recurso" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -173,7 +173,7 @@ export function ResourceHoursForm({
           name="hours"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Hours</FormLabel>
+              <FormLabel>Horas</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -192,7 +192,7 @@ export function ResourceHoursForm({
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Monthly</FormLabel>
+                <FormLabel className="text-base">Mensal</FormLabel>
               </div>
               <FormControl>
                 <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -202,7 +202,7 @@ export function ResourceHoursForm({
         />
 
         <Button type="submit" className="w-full">
-          {editingHours ? "Update" : "Create"} Resource Hours
+          {editingHours ? "Atualizar" : "Criar"} Horas de Recurso
         </Button>
       </form>
     </Form>
