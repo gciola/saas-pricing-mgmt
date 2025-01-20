@@ -32,18 +32,36 @@ export function OfferSelect({
   placeholder = "Selecione uma oferta...",
 }: OfferSelectProps) {
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: offers = [], isLoading } = useQuery({
-    queryKey: ["offers"],
+    queryKey: ["offers", searchQuery],
     queryFn: async () => {
+      if (!searchQuery.trim()) {
+        // If no search query, return all offers ordered by description
+        const { data, error } = await supabase
+          .from("offers")
+          .select("idoffer, descoffer")
+          .order("descoffer");
+        if (error) throw error;
+        return data || [];
+      }
+
+      // Use vector similarity search when there's a search query
       const { data, error } = await supabase
-        .from("offers")
-        .select("idoffer, descoffer")
-        .order("descoffer");
+        .rpc("match_offers", {
+          query_text: searchQuery,
+          match_threshold: 0.5,
+          match_count: 10
+        });
       if (error) throw error;
       return data || [];
     },
+    keepPreviousData: true,
   });
+
+  // Find selected offer
+  const selectedOffer = offers.find((offer) => offer.idoffer === value);
 
   // Render loading state
   if (isLoading) {
@@ -58,9 +76,6 @@ export function OfferSelect({
       </FormItem>
     );
   }
-
-  // Find selected offer after loading is complete
-  const selectedOffer = offers.find((offer) => offer.idoffer === value);
 
   return (
     <FormItem className="flex flex-col">
@@ -79,34 +94,36 @@ export function OfferSelect({
             </Button>
           </FormControl>
         </PopoverTrigger>
-        {offers.length > 0 && (
-          <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-            <Command>
-              <CommandInput placeholder="Procurar oferta..." />
-              <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
-              <CommandGroup>
-                {offers.map((offer) => (
-                  <CommandItem
-                    key={offer.idoffer}
-                    value={offer.descoffer}
-                    onSelect={() => {
-                      onValueChange(offer.idoffer);
-                      setOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === offer.idoffer ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {offer.descoffer}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        )}
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+          <Command>
+            <CommandInput 
+              placeholder="Procurar oferta..." 
+              value={searchQuery}
+              onValueChange={setSearchQuery}
+            />
+            <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
+            <CommandGroup>
+              {offers.map((offer) => (
+                <CommandItem
+                  key={offer.idoffer}
+                  value={offer.descoffer}
+                  onSelect={() => {
+                    onValueChange(offer.idoffer);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === offer.idoffer ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {offer.descoffer}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </Command>
+        </PopoverContent>
       </Popover>
     </FormItem>
   );
