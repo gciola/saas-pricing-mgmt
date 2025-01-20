@@ -9,7 +9,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +38,7 @@ export function ResourceHoursTable({ onEdit, onDelete }: ResourceHoursTableProps
     idoffer: string;
     idresource: string;
   } | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { data: resourceHours, isLoading } = useQuery({
     queryKey: ["resourceHours"],
@@ -58,22 +60,45 @@ export function ResourceHoursTable({ onEdit, onDelete }: ResourceHoursTableProps
     },
   });
 
+  const filteredResourceHours = resourceHours?.filter((hours) => {
+    if (!searchTerm) return true;
+    const searchTerms = searchTerm.toLowerCase().split(" ").filter(Boolean);
+    const searchableText = [
+      hours.offers?.descoffer,
+      hours.resources?.description,
+      hours.hours.toString(),
+      hours.monthly ? "Mensal" : "Não mensal"
+    ].join(" ").toLowerCase();
+    return searchTerms.every((term) => searchableText.includes(term));
+  });
+
   if (isLoading) return <div>Loading...</div>;
 
   return (
     <>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Offer</TableHead>
-            <TableHead>Resource</TableHead>
-            <TableHead>Hours</TableHead>
-            <TableHead>Monthly</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {resourceHours?.map((hours) => (
+      <div className="space-y-4">
+        <div className="relative">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Pesquisar horas por oferta, recurso, quantidade ou tipo... (use espaços para pesquisar múltiplos termos)"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Offer</TableHead>
+              <TableHead>Resource</TableHead>
+              <TableHead>Hours</TableHead>
+              <TableHead>Monthly</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredResourceHours?.map((hours) => (
             <TableRow key={`${hours.idoffer}-${hours.idresource}`}>
               <TableCell>{hours.offers?.descoffer}</TableCell>
               <TableCell>{hours.resources?.description}</TableCell>
@@ -101,9 +126,10 @@ export function ResourceHoursTable({ onEdit, onDelete }: ResourceHoursTableProps
                 </Button>
               </TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       <AlertDialog
         open={!!deleteConfirmation}

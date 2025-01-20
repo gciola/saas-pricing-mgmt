@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -9,7 +10,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,7 +22,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
 
 interface PricingTableProps {
   onEdit: (pricing: {
@@ -37,6 +38,7 @@ export function PricingTable({ onEdit, onDelete }: PricingTableProps) {
     idoffer: string;
     version: number;
   } | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { data: pricing, isLoading } = useQuery({
     queryKey: ["pricing"],
@@ -55,22 +57,45 @@ export function PricingTable({ onEdit, onDelete }: PricingTableProps) {
     },
   });
 
+  const filteredPricing = pricing?.filter((price) => {
+    if (!searchTerm) return true;
+    const searchTerms = searchTerm.toLowerCase().split(" ").filter(Boolean);
+    const searchableText = [
+      price.offers?.descoffer,
+      price.baseprice.toString(),
+      price.version.toString(),
+      price.current ? "Sim" : "Não"
+    ].join(" ").toLowerCase();
+    return searchTerms.every((term) => searchableText.includes(term));
+  });
+
   if (isLoading) return <div>Loading...</div>;
 
   return (
     <>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Offer</TableHead>
-            <TableHead>Base Price</TableHead>
-            <TableHead>Version</TableHead>
-            <TableHead>Current</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {pricing?.map((price) => (
+      <div className="space-y-4">
+        <div className="relative">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Pesquisar preços por oferta, preço base, versão ou status... (use espaços para pesquisar múltiplos termos)"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Offer</TableHead>
+              <TableHead>Base Price</TableHead>
+              <TableHead>Version</TableHead>
+              <TableHead>Current</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredPricing?.map((price) => (
             <TableRow key={`${price.idoffer}-${price.version}`}>
               <TableCell>{price.offers?.descoffer}</TableCell>
               <TableCell>{price.baseprice}</TableCell>
@@ -98,9 +123,10 @@ export function PricingTable({ onEdit, onDelete }: PricingTableProps) {
                 </Button>
               </TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       <AlertDialog
         open={!!deleteConfirmation}

@@ -92,7 +92,7 @@ export function OffersTable({ offers, onEdit, onDelete }: OffersTableProps) {
       <div className="relative">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search offers by description, parcel type, product or franchise... (use spaces to search multiple terms)"
+          placeholder="Pesquisar ofertas por descrição, tipo de parcela, produto ou franquia... (use espaços para pesquisar múltiplos termos)"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-8"
