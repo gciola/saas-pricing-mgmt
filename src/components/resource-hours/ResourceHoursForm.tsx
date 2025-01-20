@@ -51,12 +51,17 @@ export function ResourceHoursForm({
   const { data: resources = [], isLoading } = useQuery({
     queryKey: ["resources"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("resources")
-        .select("idresource, description")
-        .order("description");
-      if (error) throw error;
-      return data || [];
+      try {
+        const { data, error } = await supabase
+          .from("resources")
+          .select("idresource, description")
+          .order("description");
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
+        console.error("Error fetching resources:", error);
+        return [];
+      }
     },
   });
 
@@ -71,10 +76,15 @@ export function ResourceHoursForm({
           control={form.control}
           name="idoffer"
           render={({ field }) => (
-            <OfferSelect
-              value={field.value}
-              onValueChange={field.onChange}
-            />
+            <FormItem>
+              <FormLabel>Oferta</FormLabel>
+              <FormControl>
+                <OfferSelect
+                  value={field.value}
+                  onValueChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
           )}
         />
 
@@ -91,7 +101,7 @@ export function ResourceHoursForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {resources.map((resource) => (
+                  {(resources || []).map((resource) => (
                     <SelectItem
                       key={resource.idresource}
                       value={resource.idresource}
