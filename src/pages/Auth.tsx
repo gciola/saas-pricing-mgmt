@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthError } from "@supabase/supabase-js";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const Auth = () => {
       if (event === "SIGNED_IN" && session) {
         navigate("/");
       }
-      if (event === "SIGNED_UP") {
+      if (event === "SIGNED_UP" && session?.user) {
         const email = session?.user?.email;
         if (email && !email.endsWith(`@${allowedDomain}`)) {
           await supabase.auth.signOut();

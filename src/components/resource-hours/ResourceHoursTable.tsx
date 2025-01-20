@@ -40,7 +40,7 @@ export function ResourceHoursTable({ onEdit, onDelete }: ResourceHoursTableProps
   } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: resourceHours, isLoading } = useQuery({
+  const { data: resourceHours = [], isLoading } = useQuery({
     queryKey: ["resourceHours"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -56,11 +56,11 @@ export function ResourceHoursTable({ onEdit, onDelete }: ResourceHoursTableProps
         `)
         .order('idoffer');
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
-  const filteredResourceHours = resourceHours?.filter((hours) => {
+  const filteredResourceHours = resourceHours.filter((hours) => {
     if (!searchTerm) return true;
     const searchTerms = searchTerm.toLowerCase().split(" ").filter(Boolean);
     const searchableText = [
@@ -98,34 +98,34 @@ export function ResourceHoursTable({ onEdit, onDelete }: ResourceHoursTableProps
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredResourceHours?.map((hours) => (
-            <TableRow key={`${hours.idoffer}-${hours.idresource}`}>
-              <TableCell>{hours.offers?.descoffer}</TableCell>
-              <TableCell>{hours.resources?.description}</TableCell>
-              <TableCell>{hours.hours}</TableCell>
-              <TableCell>{hours.monthly ? "Yes" : "No"}</TableCell>
-              <TableCell className="text-right space-x-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onEdit(hours)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() =>
-                    setDeleteConfirmation({
-                      idoffer: hours.idoffer,
-                      idresource: hours.idresource,
-                    })
-                  }
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </TableCell>
-            </TableRow>
+            {filteredResourceHours.map((hours) => (
+              <TableRow key={`${hours.idoffer}-${hours.idresource}`}>
+                <TableCell>{hours.offers?.descoffer}</TableCell>
+                <TableCell>{hours.resources?.description}</TableCell>
+                <TableCell>{hours.hours}</TableCell>
+                <TableCell>{hours.monthly ? "Yes" : "No"}</TableCell>
+                <TableCell className="text-right space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onEdit(hours)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() =>
+                      setDeleteConfirmation({
+                        idoffer: hours.idoffer,
+                        idresource: hours.idresource,
+                      })
+                    }
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
             ))}
           </TableBody>
         </Table>
