@@ -45,18 +45,20 @@ export function OfferSelect({
     },
   });
 
-  const selectedOffer = offers.find((offer) => offer.idoffer === value);
-
   if (isLoading) {
     return (
       <FormItem className="flex flex-col">
         {label && <FormLabel>{label}</FormLabel>}
-        <Button variant="outline" disabled>
-          Carregando ofertas...
-        </Button>
+        <FormControl>
+          <Button variant="outline" className="w-full" disabled>
+            Carregando ofertas...
+          </Button>
+        </FormControl>
       </FormItem>
     );
   }
+
+  const selectedOffer = offers.find((offer) => offer.idoffer === value);
 
   return (
     <FormItem className="flex flex-col">
@@ -68,14 +70,14 @@ export function OfferSelect({
               variant="outline"
               role="combobox"
               aria-expanded={open}
-              className="justify-between"
+              className="w-full justify-between"
             >
               {selectedOffer?.descoffer || placeholder}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </FormControl>
         </PopoverTrigger>
-        <PopoverContent className="p-0">
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
           <Command>
             <CommandInput placeholder="Procurar oferta..." />
             <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
