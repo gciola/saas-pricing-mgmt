@@ -1,5 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -9,16 +8,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { OfferSelect } from "@/components/ui/offer-select";
 
 interface PricingFormProps {
   editingPricing?: {
@@ -45,20 +37,6 @@ export function PricingForm({ editingPricing, onSubmit }: PricingFormProps) {
     },
   });
 
-  const { data: offers, isLoading: isLoadingOffers } = useQuery({
-    queryKey: ["offers"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("offers")
-        .select("idoffer, descoffer")
-        .order('descoffer');
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  if (isLoadingOffers) return <div>Loading...</div>;
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -66,27 +44,10 @@ export function PricingForm({ editingPricing, onSubmit }: PricingFormProps) {
           control={form.control}
           name="idoffer"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Offer</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select offer" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {offers.map((offer) => (
-                    <SelectItem
-                      key={offer.idoffer}
-                      value={offer.idoffer}
-                    >
-                      {offer.descoffer}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
+            <OfferSelect
+              value={field.value}
+              onValueChange={field.onChange}
+            />
           )}
         />
 
