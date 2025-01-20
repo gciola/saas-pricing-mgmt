@@ -1,86 +1,50 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 import { AuthError } from "@supabase/supabase-js";
 
-const Auth = () => {
+export default function Auth() {
   const navigate = useNavigate();
-  const [errorMessage, setErrorMessage] = useState("");
-  const [allowedDomain, setAllowedDomain] = useState("");
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Fetch allowed domain from settings
-    const fetchAllowedDomain = async () => {
-      const { data, error } = await supabase
-        .from("settings")
-        .select("value")
-        .eq("parameter", "DOMAIN")
-        .single();
-
-      if (error) {
-        console.error("Error fetching allowed domain:", error);
-        return;
-      }
-      setAllowedDomain(data?.value || "");
-    };
-
-    fetchAllowedDomain();
-  }, []);
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" && session) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") {
         navigate("/");
-      }
-      if (event === "SIGNED_UP" && session?.user) {
-        const email = session?.user?.email;
-        if (email && !email.endsWith(`@${allowedDomain}`)) {
-          await supabase.auth.signOut();
-          setErrorMessage("This email domain is not authorized");
-        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, allowedDomain]);
+  }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-4xl font-bold text-center mb-4">Gerenciador de Ofertas SaaS</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {errorMessage && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{errorMessage}</AlertDescription>
-            </Alert>
-          )}
-          <SupabaseAuth 
-            supabaseClient={supabase} 
-            appearance={{ 
-              theme: ThemeSupa,
-              variables: {
-                default: {
-                  colors: {
-                    brand: 'hsl(var(--primary))',
-                    brandAccent: 'hsl(var(--primary))',
-                    inputBackground: 'hsl(var(--background))',
-                    inputText: 'hsl(var(--foreground))',
-                  },
-                },
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-sm space-y-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Bem-vindo</h1>
+          <p className="text-sm text-muted-foreground">
+            Faça login para continuar
+          </p>
+        </div>
+        <SupabaseAuth
+          supabaseClient={supabase}
+          appearance={{ theme: ThemeSupa }}
+          theme="light"
+          providers={[]}
+          localization={{
+            variables: {
+              sign_in: {
+                email_label: "Email",
+                password_label: "Senha",
+                button_label: "Entrar",
               },
-            }}
-            providers={[]}
-          />
-        </CardContent>
-      </Card>
+            },
+          }}
+        />
+      </div>
     </div>
   );
-};
-
-export default Auth;
+}

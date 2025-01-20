@@ -33,7 +33,7 @@ export function OfferSelect({
 }: OfferSelectProps) {
   const [open, setOpen] = useState(false);
 
-  const { data: offers = [] } = useQuery({
+  const { data: offers = [], isLoading } = useQuery({
     queryKey: ["offers"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -46,6 +46,17 @@ export function OfferSelect({
   });
 
   const selectedOffer = offers.find((offer) => offer.idoffer === value);
+
+  if (isLoading) {
+    return (
+      <FormItem className="flex flex-col">
+        {label && <FormLabel>{label}</FormLabel>}
+        <Button variant="outline" disabled>
+          Carregando ofertas...
+        </Button>
+      </FormItem>
+    );
+  }
 
   return (
     <FormItem className="flex flex-col">
