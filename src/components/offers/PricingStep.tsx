@@ -43,15 +43,15 @@ export function PricingStep({
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
-      if (data) {
-        form.reset({
-          baseprice: data.baseprice,
-          current: data.current,
-        });
-      }
-    },
   });
+
+  // Update form values when existing pricing data is loaded
+  if (existingPricing && !form.getValues().baseprice) {
+    form.reset({
+      baseprice: existingPricing.baseprice,
+      current: existingPricing.current,
+    });
+  }
 
   const handleSubmit = (values: any) => {
     onSubmit({

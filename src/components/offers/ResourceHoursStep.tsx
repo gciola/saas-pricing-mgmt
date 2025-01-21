@@ -49,17 +49,19 @@ export function ResourceHoursStep({
       if (error) throw error;
       return data || [];
     },
-    onSuccess: (data) => {
-      const hoursMap = data.reduce((acc: Record<string, any>, curr: any) => {
-        acc[curr.idresource] = {
-          hours: curr.hours,
-          monthly: curr.monthly,
-        };
-        return acc;
-      }, {});
-      setResourceHours(hoursMap);
-    },
   });
+
+  // Update resource hours when existing data is loaded
+  if (existingHours && Object.keys(resourceHours).length === 0) {
+    const hoursMap = existingHours.reduce((acc: Record<string, any>, curr: any) => {
+      acc[curr.idresource] = {
+        hours: curr.hours,
+        monthly: curr.monthly,
+      };
+      return acc;
+    }, {});
+    setResourceHours(hoursMap);
+  }
 
   if (isLoading) return <div>Loading...</div>;
 
