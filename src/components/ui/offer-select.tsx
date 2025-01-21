@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Check, Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -16,11 +15,6 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 interface OfferSelectProps {
   value?: string;
@@ -33,12 +27,21 @@ export function OfferSelect({
   value,
   onValueChange,
   label,
-  placeholder = "Selecione uma oferta...",
+  placeholder = "Digite termos para buscar ofertas...",
 }: OfferSelectProps) {
-  const [open, setOpen] = useState(false);
-  const [localSearch, setLocalSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
-  const { data, isLoading, error } = useQuery({
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const { data, isLoading } = useQuery({
     queryKey: ["offers"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -52,67 +55,55 @@ export function OfferSelect({
 
   const offers = data || [];
 
-  // Filter offers based on local search
-  const filteredOffers = offers.filter((offer) =>
-    offer.descoffer.toLowerCase().includes(localSearch.toLowerCase())
-  );
+  // Advanced search function that handles multiple terms
+  const getMatchScore = (text: string, searchTerms: string[]) => {
+    const normalizedText = text.toLowerCase();
+    return searchTerms.reduce((score, term) => {
+      return score + (normalizedText.includes(term.toLowerCase()) ? 1 : 0);
+    }, 0);
+  };
+
+  // Filter and sort offers based on search terms
+  const filteredOffers = debouncedQuery
+    ? offers
+        .map(offer => ({
+          ...offer,
+          score: getMatchScore(
+            offer.descoffer,
+            debouncedQuery.toLowerCase().split(/\s+/).filter(Boolean)
+          )
+        }))
+        .filter(offer => offer.score > 0)
+        .sort((a, b) => b.score - a.score)
+    : offers;
 
   // Find selected offer
-  const selectedOffer = offers.find((offer) => offer.idoffer === value);
-
-  if (error) {
-    console.error("Error loading offers:", error);
-    return (
-      <FormItem className="flex flex-col">
-        {label && <FormLabel>{label}</FormLabel>}
-        <FormControl>
-          <Button variant="outline" className="w-full text-destructive" disabled>
-            Error loading offers
-          </Button>
-        </FormControl>
-      </FormItem>
-    );
-  }
+  const selectedOffer = offers.find(offer => offer.idoffer === value);
 
   return (
     <FormItem className="flex flex-col">
       {label && <FormLabel>{label}</FormLabel>}
       <FormControl>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              className="w-full justify-between"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                "Loading offers..."
-              ) : (
-                <>
-                  {selectedOffer?.descoffer || placeholder}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-            <Command>
-              <CommandInput 
-                placeholder="Procurar oferta..." 
-                value={localSearch}
-                onValueChange={setLocalSearch}
+        <div className="relative">
+          <Command className="border rounded-md">
+            <div className="flex items-center border-b px-3">
+              <Search className="h-4 w-4 shrink-0 opacity-50" />
+              <CommandInput
+                placeholder={placeholder}
+                value={searchQuery}
+                onValueChange={setSearchQuery}
+                className="flex-1 pl-2"
               />
-              <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
-              <CommandGroup>
+            </div>
+            {filteredOffers.length > 0 && (
+              <CommandGroup className="max-h-60 overflow-auto">
                 {filteredOffers.map((offer) => (
                   <CommandItem
                     key={offer.idoffer}
                     value={offer.descoffer}
                     onSelect={() => {
                       onValueChange?.(offer.idoffer);
-                      setOpen(false);
+                      setSearchQuery(offer.descoffer);
                     }}
                   >
                     <Check
@@ -125,10 +116,18 @@ export function OfferSelect({
                   </CommandItem>
                 ))}
               </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
+            )}
+            {!isLoading && filteredOffers.length === 0 && (
+              <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
+            )}
+          </Command>
+        </div>
       </FormControl>
+      {selectedOffer && (
+        <div className="text-sm text-muted-foreground mt-1">
+          Selecionado: {selectedOffer.descoffer}
+        </div>
+      )}
     </FormItem>
   );
 }
