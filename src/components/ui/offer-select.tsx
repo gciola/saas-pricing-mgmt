@@ -34,27 +34,15 @@ export function OfferSelect({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: offers = [], isLoading } = useQuery({
-    queryKey: ["offers", searchQuery],
+  const { data: offers = [], isLoading, isError } = useQuery({
+    queryKey: ["offers"],
     queryFn: async () => {
       try {
-        if (!searchQuery.trim()) {
-          // If no search query, return all offers ordered by description
-          const { data, error } = await supabase
-            .from("offers")
-            .select("idoffer, descoffer")
-            .order("descoffer");
-          if (error) throw error;
-          return data || [];
-        }
-
-        // Use vector similarity search when there's a search query
         const { data, error } = await supabase
-          .rpc("match_offers", {
-            query_text: searchQuery,
-            match_threshold: 0.5,
-            match_count: 10
-          });
+          .from("offers")
+          .select("idoffer, descoffer")
+          .order("descoffer");
+        
         if (error) throw error;
         return data || [];
       } catch (error) {
@@ -68,7 +56,13 @@ export function OfferSelect({
   // Find selected offer
   const selectedOffer = offers?.find((offer) => offer.idoffer === value);
 
-  // Render loading state
+  // Filter offers based on search query
+  const filteredOffers = offers.filter((offer) => {
+    if (!searchQuery) return true;
+    return offer.descoffer.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  // Handle loading state
   if (isLoading) {
     return (
       <FormItem className="flex flex-col">
@@ -76,6 +70,20 @@ export function OfferSelect({
         <FormControl>
           <Button variant="outline" className="w-full" disabled>
             Carregando ofertas...
+          </Button>
+        </FormControl>
+      </FormItem>
+    );
+  }
+
+  // Handle error state
+  if (isError) {
+    return (
+      <FormItem className="flex flex-col">
+        {label && <FormLabel>{label}</FormLabel>}
+        <FormControl>
+          <Button variant="outline" className="w-full text-destructive" disabled>
+            Erro ao carregar ofertas
           </Button>
         </FormControl>
       </FormItem>
@@ -108,7 +116,7 @@ export function OfferSelect({
             />
             <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
             <CommandGroup>
-              {(offers || []).map((offer) => (
+              {filteredOffers.map((offer) => (
                 <CommandItem
                   key={offer.idoffer}
                   value={offer.descoffer}
