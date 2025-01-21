@@ -32,8 +32,9 @@ export function OfferSelect({
   placeholder = "Selecione uma oferta...",
 }: OfferSelectProps) {
   const [open, setOpen] = useState(false);
+  const [localSearch, setLocalSearch] = useState("");
 
-  const { data: offers = [], isLoading } = useQuery({
+  const { data: offers = [], isLoading, error } = useQuery({
     queryKey: ["offers"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -45,17 +46,22 @@ export function OfferSelect({
     },
   });
 
-  // Find selected offer
-  const selectedOffer = offers?.find((offer) => offer.idoffer === value);
+  // Filter offers based on local search
+  const filteredOffers = offers.filter((offer) =>
+    offer.descoffer.toLowerCase().includes(localSearch.toLowerCase())
+  );
 
-  // Render loading state
-  if (isLoading) {
+  // Find selected offer
+  const selectedOffer = offers.find((offer) => offer.idoffer === value);
+
+  if (error) {
+    console.error("Error loading offers:", error);
     return (
       <FormItem className="flex flex-col">
         {label && <FormLabel>{label}</FormLabel>}
         <FormControl>
-          <Button variant="outline" className="w-full" disabled>
-            Carregando ofertas...
+          <Button variant="outline" className="w-full text-destructive" disabled>
+            Error loading offers
           </Button>
         </FormControl>
       </FormItem>
@@ -73,18 +79,29 @@ export function OfferSelect({
               role="combobox"
               aria-expanded={open}
               className="w-full justify-between"
+              disabled={isLoading}
             >
-              {selectedOffer?.descoffer || placeholder}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              {isLoading ? (
+                "Loading offers..."
+              ) : (
+                <>
+                  {selectedOffer?.descoffer || placeholder}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </>
+              )}
             </Button>
           </FormControl>
         </PopoverTrigger>
         <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
           <Command>
-            <CommandInput placeholder="Procurar oferta..." />
+            <CommandInput 
+              placeholder="Procurar oferta..." 
+              value={localSearch}
+              onValueChange={setLocalSearch}
+            />
             <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
             <CommandGroup>
-              {offers.map((offer) => (
+              {filteredOffers.map((offer) => (
                 <CommandItem
                   key={offer.idoffer}
                   value={offer.descoffer}
