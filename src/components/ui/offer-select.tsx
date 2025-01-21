@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,15 +12,19 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import {
+  FormControl,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { FormControl, FormItem, FormLabel } from "./form";
 
 interface OfferSelectProps {
   value?: string;
-  onValueChange: (value: string) => void;
+  onValueChange?: (value: string) => void;
   label?: string;
   placeholder?: string;
 }
@@ -28,23 +32,25 @@ interface OfferSelectProps {
 export function OfferSelect({
   value,
   onValueChange,
-  label = "Oferta",
+  label,
   placeholder = "Selecione uma oferta...",
 }: OfferSelectProps) {
   const [open, setOpen] = useState(false);
   const [localSearch, setLocalSearch] = useState("");
 
-  const { data: offers = [], isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["offers"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("offers")
         .select("idoffer, descoffer")
-        .order("descoffer");
+        .order('descoffer');
       if (error) throw error;
       return data || [];
     },
   });
+
+  const offers = data || [];
 
   // Filter offers based on local search
   const filteredOffers = offers.filter((offer) =>
@@ -71,9 +77,9 @@ export function OfferSelect({
   return (
     <FormItem className="flex flex-col">
       {label && <FormLabel>{label}</FormLabel>}
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <FormControl>
+      <FormControl>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
             <Button
               variant="outline"
               role="combobox"
@@ -90,39 +96,39 @@ export function OfferSelect({
                 </>
               )}
             </Button>
-          </FormControl>
-        </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-          <Command>
-            <CommandInput 
-              placeholder="Procurar oferta..." 
-              value={localSearch}
-              onValueChange={setLocalSearch}
-            />
-            <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
-            <CommandGroup>
-              {filteredOffers.map((offer) => (
-                <CommandItem
-                  key={offer.idoffer}
-                  value={offer.descoffer}
-                  onSelect={() => {
-                    onValueChange(offer.idoffer);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === offer.idoffer ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {offer.descoffer}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </Command>
-        </PopoverContent>
-      </Popover>
+          </PopoverTrigger>
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+            <Command>
+              <CommandInput 
+                placeholder="Procurar oferta..." 
+                value={localSearch}
+                onValueChange={setLocalSearch}
+              />
+              <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
+              <CommandGroup>
+                {filteredOffers.map((offer) => (
+                  <CommandItem
+                    key={offer.idoffer}
+                    value={offer.descoffer}
+                    onSelect={() => {
+                      onValueChange?.(offer.idoffer);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === offer.idoffer ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {offer.descoffer}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </FormControl>
     </FormItem>
   );
 }
