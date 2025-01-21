@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Trash2, Search } from "lucide-react";
+import { Edit, Trash2, Search, DollarSign, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -27,10 +27,18 @@ interface Offer {
 interface OffersTableProps {
   offers: Offer[];
   onEdit: (offer: Offer) => void;
+  onEditResources: (offer: Offer) => void;
+  onEditPricing: (offer: Offer) => void;
   onDelete: (idoffer: string) => void;
 }
 
-export function OffersTable({ offers, onEdit, onDelete }: OffersTableProps) {
+export function OffersTable({
+  offers,
+  onEdit,
+  onEditResources,
+  onEditPricing,
+  onDelete,
+}: OffersTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: products } = useQuery({
@@ -69,11 +77,7 @@ export function OffersTable({ offers, onEdit, onDelete }: OffersTableProps) {
 
   const filteredOffers = offers.filter((offer) => {
     if (!searchTerm) return true;
-
-    // Split search terms and remove empty strings
     const searchTerms = searchTerm.toLowerCase().split(" ").filter(Boolean);
-
-    // Create a string that combines all searchable fields
     const searchableText = [
       offer.descoffer,
       offer.parceltype,
@@ -82,8 +86,6 @@ export function OffersTable({ offers, onEdit, onDelete }: OffersTableProps) {
     ]
       .join(" ")
       .toLowerCase();
-
-    // Return true only if ALL search terms are found in the searchable text
     return searchTerms.every((term) => searchableText.includes(term));
   });
 
@@ -92,7 +94,7 @@ export function OffersTable({ offers, onEdit, onDelete }: OffersTableProps) {
       <div className="relative">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Pesquisar ofertas por descrição, tipo de parcela, produto ou franquia... (use espaços para pesquisar múltiplos termos)"
+          placeholder="Search offers..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-8"
@@ -132,6 +134,20 @@ export function OffersTable({ offers, onEdit, onDelete }: OffersTableProps) {
                     onClick={() => onEdit(offer)}
                   >
                     <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => onEditResources(offer)}
+                  >
+                    <User className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => onEditPricing(offer)}
+                  >
+                    <DollarSign className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="destructive"

@@ -2,17 +2,10 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
-import { OfferForm } from "@/components/offers/OfferForm";
 import { OffersTable } from "@/components/offers/OffersTable";
+import { OfferStepsModal } from "@/components/offers/OfferStepsModal";
 
 interface Offer {
   idoffer: string;
@@ -28,6 +21,7 @@ interface Offer {
 export default function Offers() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingOffer, setEditingOffer] = useState<Offer | null>(null);
+  const [modalMode, setModalMode] = useState<"full" | "resources" | "pricing">("full");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -52,22 +46,77 @@ export default function Offers() {
   });
 
   const mutation = useMutation({
-    mutationFn: async (offer: Offer) => {
+    mutationFn: async (data: any) => {
+      // Handle offer data
       if (editingOffer) {
-        const { error } = await supabase
+        const { error: offerError } = await supabase
           .from("offers")
-          .update(offer)
+          .update({
+            descoffer: data.descoffer,
+            idfranchise: data.idfranchise,
+            parceltype: data.parceltype,
+            payer: data.payer,
+            quantity1: data.quantity1,
+            idgroup: data.idgroup,
+            idproduct: data.idproduct,
+          })
           .eq("idoffer", editingOffer.idoffer);
-        if (error) throw error;
+        if (offerError) throw offerError;
       } else {
-        const { error } = await supabase.from("offers").insert(offer);
-        if (error) throw error;
+        const { error: offerError } = await supabase.from("offers").insert({
+          idoffer: data.idoffer,
+          descoffer: data.descoffer,
+          idfranchise: data.idfranchise,
+          parceltype: data.parceltype,
+          payer: data.payer,
+          quantity1: data.quantity1,
+          idgroup: data.idgroup,
+          idproduct: data.idproduct,
+        });
+        if (offerError) throw offerError;
+      }
+
+      // Handle resource hours if present
+      if (data.resourceHours) {
+        if (editingOffer) {
+          const { error: deleteError } = await supabase
+            .from("resourcehours")
+            .delete()
+            .eq("idoffer", editingOffer.idoffer);
+          if (deleteError) throw deleteError;
+        }
+        
+        if (data.resourceHours.length > 0) {
+          const { error: resourceError } = await supabase
+            .from("resourcehours")
+            .insert(data.resourceHours);
+          if (resourceError) throw resourceError;
+        }
+      }
+
+      // Handle pricing if present
+      if (data.pricing) {
+        if (editingOffer) {
+          const { error: updateError } = await supabase
+            .from("pricing")
+            .update({ current: false })
+            .eq("idoffer", editingOffer.idoffer);
+          if (updateError) throw updateError;
+        }
+
+        const { error: pricingError } = await supabase
+          .from("pricing")
+          .insert(data.pricing);
+        if (pricingError) throw pricingError;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["offers"] });
+      queryClient.invalidateQueries({ queryKey: ["resourceHours"] });
+      queryClient.invalidateQueries({ queryKey: ["pricing"] });
       setIsOpen(false);
       setEditingOffer(null);
+      setModalMode("full");
       toast({
         title: `Offer ${editingOffer ? "updated" : "created"} successfully`,
       });
@@ -112,52 +161,47 @@ export default function Offers() {
         <div className="flex items-center gap-2">
           <h1 className="text-3xl font-bold">Offers</h1>
         </div>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2" />
-              Add Offer
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingOffer ? "Edit Offer" : "Create Offer"}
-              </DialogTitle>
-            </DialogHeader>
-            <OfferForm
-              editingOffer={editingOffer}
-              offerGroups={offerGroups || []}
-              onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                mutation.mutate({
-                  idoffer: formData.get("idoffer") as string,
-                  descoffer: formData.get("descoffer") as string,
-                  idfranchise: formData.get("idfranchise")
-                    ? Number(formData.get("idfranchise"))
-                    : null,
-                  parceltype: formData.get("parceltype") as string,
-                  payer: formData.get("payer") as string,
-                  quantity1: formData.get("quantity1") === "on",
-                  idgroup: formData.get("idgroup") as string,
-                  idproduct: formData.get("idproduct")
-                    ? Number(formData.get("idproduct"))
-                    : null,
-                });
-              }}
-            />
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => {
+          setModalMode("full");
+          setEditingOffer(null);
+          setIsOpen(true);
+        }}>
+          <Plus className="mr-2" />
+          Add Offer
+        </Button>
       </div>
 
       <OffersTable
         offers={offers || []}
         onEdit={(offer) => {
           setEditingOffer(offer);
+          setModalMode("full");
+          setIsOpen(true);
+        }}
+        onEditResources={(offer) => {
+          setEditingOffer(offer);
+          setModalMode("resources");
+          setIsOpen(true);
+        }}
+        onEditPricing={(offer) => {
+          setEditingOffer(offer);
+          setModalMode("pricing");
           setIsOpen(true);
         }}
         onDelete={(idoffer) => deleteMutation.mutate(idoffer)}
+      />
+
+      <OfferStepsModal
+        isOpen={isOpen}
+        onClose={() => {
+          setIsOpen(false);
+          setEditingOffer(null);
+          setModalMode("full");
+        }}
+        editingOffer={editingOffer}
+        offerGroups={offerGroups || []}
+        onSubmit={mutation.mutate}
+        mode={modalMode}
       />
     </div>
   );
