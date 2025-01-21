@@ -32,37 +32,17 @@ export function OfferSelect({
   placeholder = "Selecione uma oferta...",
 }: OfferSelectProps) {
   const [open, setOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: offers = [], isLoading } = useQuery({
-    queryKey: ["offers", searchQuery],
+    queryKey: ["offers"],
     queryFn: async () => {
-      try {
-        if (!searchQuery.trim()) {
-          // If no search query, return all offers ordered by description
-          const { data, error } = await supabase
-            .from("offers")
-            .select("idoffer, descoffer")
-            .order("descoffer");
-          if (error) throw error;
-          return data || [];
-        }
-
-        // Use vector similarity search when there's a search query
-        const { data, error } = await supabase
-          .rpc("match_offers", {
-            query_text: searchQuery,
-            match_threshold: 0.5,
-            match_count: 10
-          });
-        if (error) throw error;
-        return data || [];
-      } catch (error) {
-        console.error("Error fetching offers:", error);
-        return [];
-      }
+      const { data, error } = await supabase
+        .from("offers")
+        .select("idoffer, descoffer")
+        .order("descoffer");
+      if (error) throw error;
+      return data || [];
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 
   // Find selected offer
@@ -101,14 +81,10 @@ export function OfferSelect({
         </PopoverTrigger>
         <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
           <Command>
-            <CommandInput 
-              placeholder="Procurar oferta..." 
-              value={searchQuery}
-              onValueChange={setSearchQuery}
-            />
+            <CommandInput placeholder="Procurar oferta..." />
             <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
             <CommandGroup>
-              {(offers || []).map((offer) => (
+              {offers.map((offer) => (
                 <CommandItem
                   key={offer.idoffer}
                   value={offer.descoffer}
