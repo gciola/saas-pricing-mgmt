@@ -33,8 +33,7 @@ export function OfferSelect({
 }: OfferSelectProps) {
   const [open, setOpen] = useState(false);
 
-  // Fetch offers with proper error handling
-  const { data: offers, isLoading, error } = useQuery({
+  const { data: offers = [], isLoading } = useQuery({
     queryKey: ["offers"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -42,15 +41,16 @@ export function OfferSelect({
         .select("idoffer, descoffer")
         .order("descoffer");
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching offers:", error);
+        return [];
+      }
       return data || [];
     },
   });
 
-  // Find the currently selected offer
-  const selectedOffer = offers?.find(offer => offer.idoffer === value);
+  const selectedOffer = offers.find(offer => offer.idoffer === value);
 
-  // Handle loading state
   if (isLoading) {
     return (
       <FormItem className="flex flex-col">
@@ -59,20 +59,6 @@ export function OfferSelect({
           <Button variant="outline" className="w-full" disabled>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Carregando...
-          </Button>
-        </FormControl>
-      </FormItem>
-    );
-  }
-
-  // Handle error state
-  if (error) {
-    return (
-      <FormItem className="flex flex-col">
-        {label && <FormLabel>{label}</FormLabel>}
-        <FormControl>
-          <Button variant="outline" className="w-full text-destructive" disabled>
-            Erro ao carregar ofertas
           </Button>
         </FormControl>
       </FormItem>
@@ -101,7 +87,7 @@ export function OfferSelect({
             <CommandInput placeholder="Procurar oferta..." />
             <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
             <CommandGroup>
-              {(offers || []).map((offer) => (
+              {offers.map((offer) => (
                 <CommandItem
                   key={offer.idoffer}
                   value={offer.descoffer}
