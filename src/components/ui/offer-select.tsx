@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,35 +32,23 @@ export function OfferSelect({
   placeholder = "Selecione uma oferta...",
 }: OfferSelectProps) {
   const [open, setOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: offers = [], isLoading, isError } = useQuery({
+  // Fetch offers with proper error handling
+  const { data: offers, isLoading, error } = useQuery({
     queryKey: ["offers"],
     queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("offers")
-          .select("idoffer, descoffer")
-          .order("descoffer");
-        
-        if (error) throw error;
-        return data || [];
-      } catch (error) {
-        console.error("Error fetching offers:", error);
-        return [];
-      }
+      const { data, error } = await supabase
+        .from("offers")
+        .select("idoffer, descoffer")
+        .order("descoffer");
+      
+      if (error) throw error;
+      return data || [];
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 
-  // Find selected offer
-  const selectedOffer = offers?.find((offer) => offer.idoffer === value);
-
-  // Filter offers based on search query
-  const filteredOffers = offers.filter((offer) => {
-    if (!searchQuery) return true;
-    return offer.descoffer.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  // Find the currently selected offer
+  const selectedOffer = offers?.find(offer => offer.idoffer === value);
 
   // Handle loading state
   if (isLoading) {
@@ -69,7 +57,8 @@ export function OfferSelect({
         {label && <FormLabel>{label}</FormLabel>}
         <FormControl>
           <Button variant="outline" className="w-full" disabled>
-            Carregando ofertas...
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Carregando...
           </Button>
         </FormControl>
       </FormItem>
@@ -77,7 +66,7 @@ export function OfferSelect({
   }
 
   // Handle error state
-  if (isError) {
+  if (error) {
     return (
       <FormItem className="flex flex-col">
         {label && <FormLabel>{label}</FormLabel>}
@@ -107,16 +96,12 @@ export function OfferSelect({
             </Button>
           </FormControl>
         </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
           <Command>
-            <CommandInput 
-              placeholder="Procurar oferta..." 
-              value={searchQuery}
-              onValueChange={setSearchQuery}
-            />
+            <CommandInput placeholder="Procurar oferta..." />
             <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
             <CommandGroup>
-              {filteredOffers.map((offer) => (
+              {(offers || []).map((offer) => (
                 <CommandItem
                   key={offer.idoffer}
                   value={offer.descoffer}
