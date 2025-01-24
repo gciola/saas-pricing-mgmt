@@ -40,39 +40,51 @@ export function ResourceHoursTable({ onEdit, onDelete }: ResourceHoursTableProps
   } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: resourceHours = [], isLoading } = useQuery({
+  const { data: resourceHours = [], isLoading, error } = useQuery({
     queryKey: ["resourceHours"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("resourcehours")
-        .select(`
-          *,
-          offers:idoffer (
-            descoffer
-          ),
-          resources:idresource (
-            description
-          )
-        `)
-        .order('idoffer');
-      if (error) throw error;
-      return data || [];
+      try {
+        const { data, error } = await supabase
+          .from("resourcehours")
+          .select(`
+            *,
+            offers:idoffer (
+              descoffer
+            ),
+            resources:idresource (
+              description
+            )
+          `)
+          .order('idoffer');
+        
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
+        console.error("Error fetching resource hours:", error);
+        return [];
+      }
     },
   });
 
-  const filteredResourceHours = resourceHours.filter((hours) => {
+  const filteredResourceHours = (resourceHours || []).filter((hours) => {
     if (!searchTerm) return true;
     const searchTerms = searchTerm.toLowerCase().split(" ").filter(Boolean);
     const searchableText = [
-      hours.offers?.descoffer,
-      hours.resources?.description,
-      hours.hours.toString(),
+      hours.offers?.descoffer || '',
+      hours.resources?.description || '',
+      hours.hours?.toString() || '',
       hours.monthly ? "Mensal" : "Não mensal"
     ].join(" ").toLowerCase();
     return searchTerms.every((term) => searchableText.includes(term));
   });
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return <div className="flex justify-center p-4">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500 p-4">Error loading resource hours</div>;
+  }
 
   return (
     <>
@@ -100,8 +112,8 @@ export function ResourceHoursTable({ onEdit, onDelete }: ResourceHoursTableProps
           <TableBody>
             {filteredResourceHours.map((hours) => (
               <TableRow key={`${hours.idoffer}-${hours.idresource}`}>
-                <TableCell>{hours.offers?.descoffer}</TableCell>
-                <TableCell>{hours.resources?.description}</TableCell>
+                <TableCell>{hours.offers?.descoffer || 'N/A'}</TableCell>
+                <TableCell>{hours.resources?.description || 'N/A'}</TableCell>
                 <TableCell>{hours.hours}</TableCell>
                 <TableCell>{hours.monthly ? "Yes" : "No"}</TableCell>
                 <TableCell className="text-right space-x-2">
