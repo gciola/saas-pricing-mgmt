@@ -75,7 +75,7 @@ export default function Simulation() {
         .select("description, franchisetype")
         .order("description");
       if (error) throw error;
-      return data as Product[];
+      return (data || []) as Product[];
     },
   });
 
@@ -87,7 +87,7 @@ export default function Simulation() {
         .select("frlabel, franchisetype")
         .order("frlabel");
       if (error) throw error;
-      return data as Franchise[];
+      return (data || []) as Franchise[];
     },
   });
 
@@ -151,6 +151,7 @@ export default function Simulation() {
         });
       }
     } catch (error) {
+      console.error("Simulation error:", error);
       toast({
         title: "Erro ao realizar simulação",
         variant: "destructive",
@@ -255,7 +256,7 @@ export default function Simulation() {
         </div>
       </div>
 
-      {simulationResult && (
+      {simulationResult && simulationResult.produtos && (
         <div className="space-y-8">
           <div>
             <h2 className="text-xl font-semibold mb-4">Produtos</h2>
