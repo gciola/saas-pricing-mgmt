@@ -22,6 +22,11 @@ import {
 } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 
+interface Offer {
+  idoffer: string;
+  descoffer: string;
+}
+
 interface OfferSelectProps {
   value?: string;
   onValueChange: (value: string) => void;
@@ -35,29 +40,24 @@ export function OfferSelect({
 }: OfferSelectProps) {
   const [open, setOpen] = useState(false);
 
-  const { data: offers = [], isLoading } = useQuery({
+  const { data: offers = [], isLoading } = useQuery<Offer[]>({
     queryKey: ["offers"],
     queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("offers")
-          .select("idoffer, descoffer")
-          .order("descoffer");
-        
-        if (error) {
-          console.error("Error fetching offers:", error);
-          return [];
-        }
-        
-        return data || [];
-      } catch (error) {
-        console.error("Error in query:", error);
+      const { data, error } = await supabase
+        .from("offers")
+        .select("idoffer, descoffer")
+        .order("descoffer");
+
+      if (error) {
+        console.error("Error fetching offers:", error);
         return [];
       }
+
+      return data || [];
     },
   });
 
-  const selectedOffer = offers.find(offer => offer.idoffer === value);
+  const selectedOffer = offers.find((offer) => offer.idoffer === value);
 
   return (
     <FormItem className="flex flex-col">
@@ -79,7 +79,9 @@ export function OfferSelect({
                 </>
               ) : (
                 <>
-                  {selectedOffer ? selectedOffer.descoffer : "Selecione uma oferta"}
+                  {selectedOffer
+                    ? selectedOffer.descoffer
+                    : "Selecione uma oferta"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </>
               )}
