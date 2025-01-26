@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,11 +21,6 @@ import {
 } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 
-interface Offer {
-  idoffer: string;
-  descoffer: string;
-}
-
 interface OfferSelectProps {
   value?: string;
   onValueChange: (value: string) => void;
@@ -39,25 +33,37 @@ export function OfferSelect({
   label,
 }: OfferSelectProps) {
   const [open, setOpen] = useState(false);
+  const [offers, setOffers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const { data: offers = [], isLoading } = useQuery<Offer[]>({
-    queryKey: ["offers"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("offers")
-        .select("idoffer, descoffer")
-        .order("descoffer");
+  useEffect(() => {
+    const fetchOffers = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const { data, error } = await supabase
+          .from("offers")
+          .select("idoffer, descoffer")
+          .order("descoffer");
 
-      if (error) {
+        if (error) {
+          throw error;
+        }
+
+        setOffers(data || []);
+      } catch (error) {
         console.error("Error fetching offers:", error);
-        return [];
+        setError("Failed to load offers.");
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      return data || [];
-    },
-  });
+    fetchOffers();
+  }, []);
 
-  const selectedOffer = offers.find((offer) => offer.idoffer === value);
+  const selectedOffer = offers.find(offer => offer.idoffer === value);
 
   return (
     <FormItem className="flex flex-col">
@@ -79,9 +85,7 @@ export function OfferSelect({
                 </>
               ) : (
                 <>
-                  {selectedOffer
-                    ? selectedOffer.descoffer
-                    : "Selecione uma oferta"}
+                  {selectedOffer ? selectedOffer.descoffer : "Selecione uma oferta"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </>
               )}
@@ -92,29 +96,34 @@ export function OfferSelect({
               <CommandInput placeholder="Procurar oferta..." />
               <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
               <CommandGroup>
-                {offers.map((offer) => (
-                  <CommandItem
-                    key={offer.idoffer}
-                    value={offer.descoffer}
-                    onSelect={() => {
-                      onValueChange(offer.idoffer);
-                      setOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === offer.idoffer ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {offer.descoffer}
-                  </CommandItem>
-                ))}
+                {offers.length > 0 ? (
+                  offers.map((offer) => (
+                    <CommandItem
+                      key={offer.idoffer}
+                      value={offer.descoffer}
+                      onSelect={() => {
+                        onValueChange(offer.idoffer);
+                        setOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          value === offer.idoffer ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {offer.descoffer}
+                    </CommandItem>
+                  ))
+                ) : (
+                  <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
+                )}
               </CommandGroup>
             </Command>
           </PopoverContent>
         </Popover>
       </FormControl>
+      {error && <p className="text-red-500">{error}</p>}
     </FormItem>
   );
 }
