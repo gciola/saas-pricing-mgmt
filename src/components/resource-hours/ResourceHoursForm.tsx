@@ -1,156 +1,120 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-  Form,
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   FormControl,
-  FormField,
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { OfferSelect } from "@/components/ui/offer-select";
+import { supabase } from "@/integrations/supabase/client";
 
-interface ResourceHoursFormProps {
-  editingHours?: {
-    idoffer: string;
-    idresource: string;
-    hours: number;
-    monthly: boolean;
-  };
-  onSubmit: (data: {
-    idoffer: string;
-    idresource: string;
-    hours: number;
-    monthly: boolean;
-  }) => void;
+interface Offer {
+  idoffer: string;
+  descoffer: string;
 }
 
-export function ResourceHoursForm({
-  editingHours,
-  onSubmit,
-}: ResourceHoursFormProps) {
-  const form = useForm({
-    defaultValues: {
-      idoffer: editingHours?.idoffer || "",
-      idresource: editingHours?.idresource || "",
-      hours: editingHours?.hours || 0,
-      monthly: editingHours?.monthly || false,
-    },
-  });
+interface OfferSelectProps {
+  value?: string;
+  onValueChange: (value: string) => void;
+  label?: string;
+}
 
-  const { data: resources = [], isLoading } = useQuery({
-    queryKey: ["resources"],
+export function OfferSelect({
+  value,
+  onValueChange,
+  label,
+}: OfferSelectProps) {
+  const [open, setOpen] = useState(false);
+
+  const { data: offers = [], isLoading } = useQuery<Offer[]>({
+    queryKey: ["offers"],
     queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("resources")
-          .select("idresource, description")
-          .order("description");
-        if (error) throw error;
-        return data || [];
-      } catch (error) {
-        console.error("Error fetching resources:", error);
+      const { data, error } = await supabase
+        .from("offers")
+        .select("idoffer, descoffer")
+        .order("descoffer");
+
+      if (error) {
+        console.error("Error fetching offers:", error);
         return [];
       }
+
+      return data || [];
     },
   });
 
-  if (isLoading) {
-    return <div>Carregando...</div>;
-  }
+  const selectedOffer = offers.find((offer) => offer.idoffer === value);
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="idoffer"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Oferta</FormLabel>
-              <FormControl>
-                <OfferSelect
-                  value={field.value}
-                  onValueChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="idresource"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Recurso</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o recurso" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {(resources || []).map((resource) => (
-                    <SelectItem
-                      key={resource.idresource}
-                      value={resource.idresource}
-                    >
-                      {resource.description}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="hours"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Horas</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="monthly"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">Mensal</FormLabel>
-              </div>
-              <FormControl>
-                <Switch checked={field.value} onCheckedChange={field.onChange} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" className="w-full">
-          {editingHours ? "Atualizar" : "Criar"} Horas de Recurso
-        </Button>
-      </form>
-    </Form>
+    <FormItem className="flex flex-col">
+      {label && <FormLabel>{label}</FormLabel>}
+      <FormControl>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-full justify-between"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Carregando...
+                </>
+              ) : (
+                <>
+                  {selectedOffer
+                    ? selectedOffer.descoffer
+                    : "Selecione uma oferta"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+            <Command>
+              <CommandInput placeholder="Procurar oferta..." />
+              <CommandEmpty>Nenhuma oferta encontrada.</CommandEmpty>
+              <CommandGroup>
+                {offers.map((offer) => (
+                  <CommandItem
+                    key={offer.idoffer}
+                    value={offer.descoffer}
+                    onSelect={() => {
+                      onValueChange(offer.idoffer);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === offer.idoffer ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {offer.descoffer}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </FormControl>
+    </FormItem>
   );
 }
