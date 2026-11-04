@@ -1,18 +1,9 @@
-# Welcome to your Lovable project
+# Saas Pricing Management App
 
 ## Project info
 
 **URL**: https://lovable.dev/projects/4536dbf9-c303-42d1-a446-50c88b0d2d5e
 
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/4536dbf9-c303-42d1-a446-50c88b0d2d5e) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
 
 **Use your preferred IDE**
 
@@ -60,9 +51,7 @@ This project is built with .
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/4536dbf9-c303-42d1-a446-50c88b0d2d5e) and click on Share -> Publish.
 
 ## I want to use a custom domain - is that possible?
 
